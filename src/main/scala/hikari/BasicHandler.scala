@@ -45,7 +45,7 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
 
   private def findAction(url: String, request: Request, response: Response): Unit = {
 
-    val filterPattern = Route.beforeFilters.find(x => {
+    val filterPattern = InternalRoute.beforeFilters.find(x => {
       x._1(url).isDefined
     })
 
@@ -54,19 +54,19 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
       f._2(request, response)
     }
 
-    val matchedPattern = Route.getRoutes.find(x => {
+    val matchedPattern = InternalRoute.getRoutes.find(x => {
       x.pathPattern(url).isDefined
     })
 
     val body = if (matchedPattern.isDefined) {
       val a = matchedPattern.get
       if (a.method != request.method) {
-        Route.halt(405)
+        InternalRoute.halt(405)
       }
       a.action(request, response)
     }
 
-    val afterPattern = Route.afterMap.find(x => {
+    val afterPattern = InternalRoute.afterMap.find(x => {
       x._1(url).isDefined
     })
 

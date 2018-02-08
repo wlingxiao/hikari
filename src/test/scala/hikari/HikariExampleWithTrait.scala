@@ -1,11 +1,9 @@
 package hikari
 
-import hikari.InternalRoute._
+object HikariExampleWithTrait extends Route with App {
 
-object HikariExample extends App {
 
   before("/users/*") { (request, response) =>
-
     println("before users")
 
   }
@@ -19,4 +17,5 @@ object HikariExample extends App {
   }
 
   HikariServer.start()
+
 }
