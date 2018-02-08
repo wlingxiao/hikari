@@ -11,6 +11,11 @@ object HikariExample extends App {
   }
 
   get("/users/:id") { (request, response) =>
+
+    println(request.cookies())
+
+    println(request.cookie("name"))
+
     request.pathParam("id")
   }
 

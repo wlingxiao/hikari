@@ -2,6 +2,8 @@ package hikari
 
 import java.nio.charset.Charset
 
+import io.netty.handler.codec.http.HttpHeaderNames.COOKIE
+import io.netty.handler.codec.http.cookie.ServerCookieDecoder
 import io.netty.handler.codec.http.{FullHttpRequest, HttpMethod}
 
 import scala.collection.JavaConverters._
@@ -39,5 +41,17 @@ class Request(httpRequest: FullHttpRequest) {
 
   var pathPattern: Option[MultiParams] = None
 
+
+  def cookies(): List[Cookie] = {
+    val cookieString = httpRequest.headers().get(COOKIE)
+    if (cookieString != null) {
+      val cookies = ServerCookieDecoder.STRICT.decode(cookieString)
+      cookies.asScala.map(x => Cookie(x.name(), x.value())).toList
+    } else Nil
+  }
+
+  def cookie(name: String): Option[Cookie] = {
+    cookies().find(x => x.name == name)
+  }
 
 }
