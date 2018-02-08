@@ -54,13 +54,16 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
       f._2(request, response)
     }
 
-    val matchedPattern = Route.getRoute.find(x => {
-      x._1(url).isDefined
+    val matchedPattern = Route.getRoutes.find(x => {
+      x.pathPattern(url).isDefined
     })
 
     val body = if (matchedPattern.isDefined) {
       val a = matchedPattern.get
-      a._2(request, response)
+      if (a.method != request.method) {
+        Route.halt(405)
+      }
+      a.action(request, response)
     }
 
     val afterPattern = Route.afterMap.find(x => {

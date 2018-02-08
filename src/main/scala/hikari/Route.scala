@@ -2,16 +2,23 @@ package hikari
 
 import hikari.matcher.{PathPattern, SinatraPathPatternParser}
 
+import scala.collection.mutable.ListBuffer
+
+case class RouteEntry(method: String, pathPattern: PathPattern, action: Action)
+
 object Route {
 
-  private[hikari] val getRoute = scala.collection.mutable.HashMap[PathPattern, Action]()
+  private val getRoute = scala.collection.mutable.HashMap[PathPattern, Action]()
+
+  val getRoutes = ListBuffer[RouteEntry]()
 
   private[hikari] val beforeFilters = scala.collection.mutable.HashMap[PathPattern, FilterAction]()
 
   private[hikari] val afterMap = scala.collection.mutable.HashMap[PathPattern, FilterAction]()
 
   def get(path: String)(action: Action): Unit = {
-    getRoute(SinatraPathPatternParser(path)) = action
+    val routeEntry = RouteEntry("GET", SinatraPathPatternParser(path), action)
+    getRoutes += routeEntry
   }
 
   def before(path: String)(action: FilterAction): Unit = {
@@ -25,6 +32,7 @@ object Route {
   def halt(code: Int): Unit = {
     code match {
       case 400 => throw new HaltException(code, "bad request")
+      case 405 => throw new HaltException(code, "method not allowed")
       case _ => throw new HaltException(500, "internal server error")
     }
   }
