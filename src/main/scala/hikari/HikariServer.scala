@@ -5,7 +5,7 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.{ChannelInitializer, ChannelOption}
-import io.netty.handler.codec.http.{HttpServerCodec, HttpServerExpectContinueHandler}
+import io.netty.handler.codec.http.{HttpObjectAggregator, HttpServerCodec, HttpServerExpectContinueHandler}
 import io.netty.handler.logging.{LogLevel, LoggingHandler}
 
 object HikariServer {
@@ -34,6 +34,7 @@ class HikariServerInitializer extends ChannelInitializer[SocketChannel] {
   override def initChannel(ch: SocketChannel): Unit = {
     val p = ch.pipeline()
     p.addLast(new HttpServerCodec())
+    p.addLast(new HttpObjectAggregator(Short.MaxValue))
     p.addLast(new HttpServerExpectContinueHandler())
     p.addLast(new BasicHandler)
   }
