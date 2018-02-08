@@ -12,8 +12,7 @@ object HikariExample extends App {
 
   get("/users/:id") { (request, response) =>
     println("hello")
-
-
+    halt(400)
   }
 
   after("/users/*") { (request, response) =>

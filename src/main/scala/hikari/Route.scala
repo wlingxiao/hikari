@@ -22,4 +22,11 @@ object Route {
     afterMap(SinatraPathPatternParser(path)) = action
   }
 
+  def halt(code: Int): Unit = {
+    code match {
+      case 400 => throw new HaltException(code, "bad request")
+      case _ => throw new HaltException(500, "internal server error")
+    }
+  }
+
 }

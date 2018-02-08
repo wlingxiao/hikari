@@ -1,6 +1,7 @@
 package hikari
 
-import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
+import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext, SimpleChannelInboundHandler}
+import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
 import io.netty.handler.codec.http._
 import io.netty.util.AsciiString
 
@@ -30,8 +31,16 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
   }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
-    cause.printStackTrace()
-    ctx.close()
+
+    cause match {
+      case haltException: HaltException =>
+        val response = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.valueOf(haltException.code))
+        ctx.write(response).addListener(ChannelFutureListener.CLOSE)
+      case any: Throwable =>
+        any.printStackTrace()
+        ctx.close()
+    }
+
   }
 
   private def findAction(url: String, request: Request, response: Response): Unit = {
