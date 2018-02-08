@@ -1,27 +1,10 @@
 package hikari
 
-import hikari.InternalRoute.{afterMap, beforeFilters, getRoutes}
 import hikari.matcher.{PathPattern, SinatraPathPatternParser}
 
 import scala.collection.mutable.ListBuffer
 
 case class RouteEntry(method: String, pathPattern: PathPattern, action: Action)
-
-trait Route {
-
-  def get(path: String)(action: Action): Unit = {
-    val routeEntry = RouteEntry("GET", SinatraPathPatternParser(path), action)
-    getRoutes += routeEntry
-  }
-
-  def before(path: String)(action: FilterAction): Unit = {
-    beforeFilters(SinatraPathPatternParser(path)) = action
-  }
-
-  def after(path: String)(action: FilterAction): Unit = {
-    afterMap(SinatraPathPatternParser(path)) = action
-  }
-}
 
 object InternalRoute {
 
