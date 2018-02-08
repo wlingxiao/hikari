@@ -1,11 +1,6 @@
 package hikari
 
-import java.nio.charset.Charset
-
-import io.netty.buffer.Unpooled
-import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext, SimpleChannelInboundHandler}
-import io.netty.handler.codec.http.HttpResponseStatus.OK
-import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
+import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
 import io.netty.handler.codec.http._
 import io.netty.util.AsciiString
 
@@ -29,27 +24,9 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
     *
     */
   override def channelRead0(ctx: ChannelHandlerContext, httpRequest: FullHttpRequest): Unit = {
-    if (httpRequest.method().equals(HttpMethod.POST) || httpRequest.method().equals(HttpMethod.PUT)) {
-      println(httpRequest.content().toString(Charset.forName("UTF-8"))) // 读取请求体
-    }
-
-    val keepAlive = HttpUtil.isKeepAlive(httpRequest)
-
-
     val request = new Request(httpRequest)
-    val resp = new Response()
+    val resp = new Response(ctx, httpRequest)
     findAction(httpRequest.uri(), request, resp)
-    val response = new DefaultFullHttpResponse(HTTP_1_1, OK, Unpooled.wrappedBuffer(CONTENT))
-
-    response.headers().set(CONTENT_TYPE, "text/plain")
-    response.headers().setInt(CONTENT_LENGTH, response.content().readableBytes())
-    if (!keepAlive) {
-      ctx.write(response).addListener(ChannelFutureListener.CLOSE)
-    } else {
-      response.headers().set(CONNECTION, KEEP_ALIVE)
-      ctx.write(response)
-    }
-
   }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
@@ -72,7 +49,7 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
       x._1(url).isDefined
     })
 
-    if (matchedPattern.isDefined) {
+    val body = if (matchedPattern.isDefined) {
       val a = matchedPattern.get
       a._2(request, response)
     }
@@ -85,5 +62,8 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
       val a = afterPattern.get
       a._2(request, response)
     }
+
+    response.body = body
+    response.writeBody()
   }
 }
