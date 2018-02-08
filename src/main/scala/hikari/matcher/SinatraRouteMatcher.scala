@@ -9,7 +9,6 @@ import scala.util.parsing.combinator.RegexParsers
 case class PathPattern(regex: Regex, captureGroupNames: List[String] = Nil) {
 
   def apply(path: String): Option[MultiParams] = {
-    // This is a performance hotspot.  Hideous mutatations ahead.
     val m = regex.pattern.matcher(path)
     var multiParams = Map[String, Seq[String]]()
     if (m.matches) {
@@ -116,10 +115,6 @@ object SinatraPathPatternParser {
 
 trait RegexPathPatternParser extends PathPatternParser with RegexParsers {
 
-  /**
-    * This parser gradually builds a regular expression.  Some intermediate
-    * strings are not valid regexes, so we wait to compile until the end.
-    */
   protected case class PartialPathPattern(regex: String, captureGroupNames: List[String] = Nil) {
 
     def toPathPattern: PathPattern = PathPattern(regex.r, captureGroupNames)

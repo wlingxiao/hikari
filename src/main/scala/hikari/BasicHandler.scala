@@ -34,6 +34,11 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
     }
 
     val keepAlive = HttpUtil.isKeepAlive(httpRequest)
+
+
+    val request = new Request(httpRequest)
+    val resp = new Response()
+    findAction(httpRequest.uri(), request, resp)
     val response = new DefaultFullHttpResponse(HTTP_1_1, OK, Unpooled.wrappedBuffer(CONTENT))
 
     response.headers().set(CONTENT_TYPE, "text/plain")
@@ -50,5 +55,35 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
     cause.printStackTrace()
     ctx.close()
+  }
+
+  private def findAction(url: String, request: Request, response: Response): Unit = {
+
+    val filterPattern = Route.beforeFilters.find(x => {
+      x._1(url).isDefined
+    })
+
+    if (filterPattern.isDefined) {
+      val f = filterPattern.get
+      f._2(request, response)
+    }
+
+    val matchedPattern = Route.getRoute.find(x => {
+      x._1(url).isDefined
+    })
+
+    if (matchedPattern.isDefined) {
+      val a = matchedPattern.get
+      a._2(request, response)
+    }
+
+    val afterPattern = Route.afterMap.find(x => {
+      x._1(url).isDefined
+    })
+
+    if (afterPattern.isDefined) {
+      val a = afterPattern.get
+      a._2(request, response)
+    }
   }
 }
