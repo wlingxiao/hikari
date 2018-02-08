@@ -28,7 +28,7 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
     * https://stackoverflow.com/questions/34991616/netty-how-to-detect-extract-contents-of-posts
     *
     */
-  override def channelRead0(ctx: ChannelHandlerContext, httpRequest: FullHttpRequest) = {
+  override def channelRead0(ctx: ChannelHandlerContext, httpRequest: FullHttpRequest): Unit = {
     if (httpRequest.method().equals(HttpMethod.POST) || httpRequest.method().equals(HttpMethod.PUT)) {
       println(httpRequest.content().toString(Charset.forName("UTF-8"))) // 读取请求体
     }
