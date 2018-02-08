@@ -23,6 +23,7 @@ resolvers += Classpaths.typesafeReleases
 
 libraryDependencies ++= Seq(
   "io.netty" % "netty-all" % "4.1.21.Final",
+  "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.0",
   "ch.qos.logback" % "logback-classic" % "1.2.3" % "runtime",
   "org.scalatest" %% "scalatest" % "3.0.4" % Test,
 )
