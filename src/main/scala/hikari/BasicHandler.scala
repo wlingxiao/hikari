@@ -55,7 +55,11 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
     }
 
     val matchedPattern = InternalRoute.getRoutes.find(x => {
-      x.pathPattern(url).isDefined
+      val a = x.pathPattern(url)
+      if (a.isDefined) {
+        request.pathPattern = a
+        true
+      } else false
     })
 
     val body = if (matchedPattern.isDefined) {

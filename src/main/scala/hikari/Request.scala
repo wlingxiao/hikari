@@ -27,4 +27,17 @@ class Request(httpRequest: FullHttpRequest) {
   def headers: Map[String, String] = {
     httpRequest.headers().asScala.map(x => x.getKey -> x.getValue).toMap
   }
+
+  def header(name: String): Option[String] = {
+    headers.get(name)
+  }
+
+  def pathParam(name: String): String = {
+    pathPattern.get(name).mkString("")
+  }
+
+
+  var pathPattern: Option[MultiParams] = None
+
+
 }

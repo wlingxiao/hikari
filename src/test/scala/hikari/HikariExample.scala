@@ -11,7 +11,7 @@ object HikariExample extends App {
   }
 
   get("/users/:id") { (request, response) =>
-    "Hello world"
+    request.pathParam("id")
   }
 
   after("/users/*") { (request, response) =>
