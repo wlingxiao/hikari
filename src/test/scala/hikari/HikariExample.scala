@@ -20,6 +20,5 @@ object HikariExample extends App {
     println("after users")
   }
 
-
   HikariServer.start()
 }
