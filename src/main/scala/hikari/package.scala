@@ -6,4 +6,6 @@ package object hikari {
   type Action = (Request, Response) => Any
 
   type FilterAction = (Request, Response) => Unit
+
+  type ExceptionMapper = PartialFunction[Throwable, Any]
 }

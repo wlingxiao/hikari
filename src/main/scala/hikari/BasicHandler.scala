@@ -1,23 +1,14 @@
 package hikari
 
-import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext, SimpleChannelInboundHandler}
-import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
+import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
 import io.netty.handler.codec.http._
 import io.netty.util.AsciiString
 
 class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
 
-  private val CONTENT = Array[Byte]('H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd')
-
-  private val CONTENT_TYPE = AsciiString.cached("Content-Type")
-  private val CONTENT_LENGTH = AsciiString.cached("Content-Length")
-  private val CONNECTION = AsciiString.cached("Connection")
-  private val KEEP_ALIVE = AsciiString.cached("keep-alive")
-
   override def channelReadComplete(ctx: ChannelHandlerContext): Unit = {
     ctx.flush()
   }
-
 
   /**
     * 读取 post 和 put body
@@ -27,20 +18,18 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
   override def channelRead0(ctx: ChannelHandlerContext, httpRequest: FullHttpRequest): Unit = {
     val request = new Request(httpRequest)
     val resp = new Response(ctx, httpRequest)
+    ctx.channel().attr(Constants.REQUEST_KEY).setIfAbsent(request)
+    ctx.channel().attr(Constants.RESPONSE_KEY).setIfAbsent(resp)
     findAction(httpRequest.uri(), request, resp)
   }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
-
-    cause match {
-      case haltException: HaltException =>
-        val response = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.valueOf(haltException.code))
-        ctx.write(response).addListener(ChannelFutureListener.CLOSE)
-      case any: Throwable =>
-        any.printStackTrace()
-        ctx.close()
+    try {
+      val mapper = new ExceptionHandler
+      mapper.runAll(ctx, cause)
+    } finally {
+      ctx.close()
     }
-
   }
 
   private def findAction(url: String, request: Request, response: Response): Unit = {

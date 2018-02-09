@@ -22,6 +22,8 @@ class Request(httpRequest: FullHttpRequest) {
     }
   }
 
+  def raw: FullHttpRequest = httpRequest
+
   def url: String = {
     httpRequest.uri()
   }

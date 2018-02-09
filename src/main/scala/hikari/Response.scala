@@ -36,6 +36,8 @@ class Response(ctx: ChannelHandlerContext, httpRequest: FullHttpRequest) {
     body match {
       case str: String =>
         write(str.getBytes(Charset.forName("UTF-8")))
+      case r: DefaultFullHttpResponse =>
+        ctx.write(r).addListener(ChannelFutureListener.CLOSE)
       case _ => throw new UnsupportedOperationException("不支持的返回类型")
     }
 

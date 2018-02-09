@@ -17,6 +17,8 @@ object HikariExample extends App {
     println(request.cookie("name"))
 
     request.pathParam("id")
+
+    throw new UnsupportedOperationException
   }
 
   after("/users/*") { (request, response) =>
