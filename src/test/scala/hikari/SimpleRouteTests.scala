@@ -1,6 +1,7 @@
 package hikari
 
 import hikari.InternalRoute._
+import io.netty.buffer.Unpooled
 import io.netty.channel.embedded.EmbeddedChannel
 import io.netty.handler.codec.http.HttpMethod._
 import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
@@ -44,6 +45,19 @@ class SimpleRouteTests extends FunSuite with Matchers with BeforeAndAfter {
     channel.writeInbound(request)
     val response = channel.readOutbound[FullHttpResponse]()
     response.content().toString(UTF_8) should equal("created")
+  }
+
+  test("post users body") {
+    post("/users") { (req, _) =>
+      req.body.getOrElse("empty")
+    }
+
+    val body = Unpooled.wrappedBuffer("""{"admin": "test"}""".getBytes(UTF_8))
+    val request = new DefaultFullHttpRequest(HTTP_1_1, POST, "/users", body)
+    val channel = createChannel()
+    channel.writeInbound(request)
+    val response = channel.readOutbound[FullHttpResponse]()
+    response.content().toString(UTF_8) should include("admin")
   }
 
   private def createChannel(): EmbeddedChannel = {
