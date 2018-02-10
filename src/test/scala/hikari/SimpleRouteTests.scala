@@ -10,6 +10,8 @@ import io.netty.handler.codec.http._
 import io.netty.util.CharsetUtil.UTF_8
 import org.scalatest.{BeforeAndAfter, FunSuite, Matchers}
 
+case class TestUser(admin: String)
+
 class SimpleRouteTests extends FunSuite with Matchers with BeforeAndAfter {
 
   test("get users") {
@@ -50,15 +52,17 @@ class SimpleRouteTests extends FunSuite with Matchers with BeforeAndAfter {
 
   test("post users body") {
     post("/users") { (req, _) =>
-      req.body.getOrElse("empty")
+      val r = req.body[TestUser]
+      r.get.toString
     }
 
     val body = Unpooled.wrappedBuffer("""{"admin": "test"}""".getBytes(UTF_8))
     val request = new DefaultFullHttpRequest(HTTP_1_1, POST, "/users", body)
+    request.headers().set(CONTENT_TYPE, "application/json")
     val channel = createChannel()
     channel.writeInbound(request)
     val response = channel.readOutbound[FullHttpResponse]()
-    response.content().toString(UTF_8) should include("admin")
+    response.content().toString(UTF_8) should include("test")
   }
 
   test("post users header") {
@@ -75,6 +79,23 @@ class SimpleRouteTests extends FunSuite with Matchers with BeforeAndAfter {
     val response = channel.readOutbound[FullHttpResponse]()
     response.content().toString(UTF_8) should equal("application/json")
   }
+
+  test("get users with id and wildcard") {
+    get("/users/*") { (req, _) =>
+      "wildcard"
+    }
+
+    get("/users/:id") { (req, _) =>
+      req.pathParam("id")
+    }
+
+    val request = new DefaultFullHttpRequest(HTTP_1_1, GET, "/users/123")
+    val channel = createChannel()
+    channel.writeInbound(request)
+    val response = channel.readOutbound[FullHttpResponse]()
+    response.content().toString(UTF_8) should equal("123")
+  }
+
 
   private def createChannel(): EmbeddedChannel = {
     new EmbeddedChannel(new HttpRequestDecoder(), new HttpObjectAggregator(Short.MaxValue), new BasicHandler)

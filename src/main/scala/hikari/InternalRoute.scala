@@ -4,7 +4,19 @@ import hikari.matcher.{PathPattern, SinatraPathPatternParser}
 
 import scala.collection.mutable.ListBuffer
 
-case class RouteEntry(method: String, pathPattern: PathPattern, action: Action)
+case class RouteEntry(method: String, pathPattern: PathPattern, action: Action, pattern: String) extends Ordered[RouteEntry] {
+  override def compare(that: RouteEntry): Int = {
+    if (this.pattern == that.pattern) {
+      0
+    } else if (this.pattern.contains(":") && that.pattern.contains("*")) {
+      1
+    } else if (that.pattern.contains(":") && this.pattern.contains("*")) {
+      -1
+    } else {
+      0
+    }
+  }
+}
 
 case class FilterEntry(pathPattern: PathPattern, action: FilterAction)
 
@@ -18,12 +30,12 @@ object InternalRoute {
   private[hikari] val afterMap = scala.collection.mutable.ListBuffer[FilterEntry]()
 
   def get(path: String)(action: Action): Unit = {
-    val routeEntry = RouteEntry("GET", SinatraPathPatternParser(path), action)
+    val routeEntry = RouteEntry("GET", SinatraPathPatternParser(path), action, path)
     getRoutes += routeEntry
   }
 
   def post(path: String)(action: Action): Unit = {
-    val routeEntry = RouteEntry("POST", SinatraPathPatternParser(path), action)
+    val routeEntry = RouteEntry("POST", SinatraPathPatternParser(path), action, path)
     getRoutes += routeEntry
   }
 

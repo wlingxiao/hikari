@@ -8,8 +8,6 @@ object HikariExample extends App {
 
   before("/users/*") { (request, response) =>
 
-    halt(400)
-
   }
 
   get("/users/:id") { (request, response) =>
@@ -19,8 +17,6 @@ object HikariExample extends App {
     println(request.cookie("name"))
 
     request.pathParam("id")
-
-    throw new UnsupportedOperationException
   }
 
   post("/users") { (req, _) =>

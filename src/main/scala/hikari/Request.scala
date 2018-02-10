@@ -5,6 +5,7 @@ import java.nio.charset.Charset
 import io.netty.handler.codec.http.HttpHeaderNames.COOKIE
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder
 import io.netty.handler.codec.http.{FullHttpRequest, HttpMethod}
+import io.netty.util.AsciiString
 import org.json4s.jackson.JsonMethods
 import org.json4s.{DefaultFormats, Formats}
 import org.slf4j.LoggerFactory
@@ -14,6 +15,8 @@ import scala.collection.JavaConverters._
 class ByteBody {}
 
 class Request(httpRequest: FullHttpRequest) {
+
+  private val CONTENT_TYPE = AsciiString.cached("Content-Type")
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -31,7 +34,7 @@ class Request(httpRequest: FullHttpRequest) {
         None
       case _ =>
         if (httpRequest.method().equals(HttpMethod.POST) || httpRequest.method().equals(HttpMethod.PUT)) {
-          if (header("Content-Type").isDefined && header("Content-Type").get.contains("application/json")) {
+          if (header("Content-Type".toLowerCase()).isDefined && header("Content-Type".toLowerCase).get.contains("application/json")) {
             val b = httpRequest.content().toString(Charset.forName("UTF-8"))
             JsonMethods.parse(b).extractOpt[T]
           } else {
