@@ -6,13 +6,16 @@ import scala.collection.mutable.ListBuffer
 
 case class RouteEntry(method: String, pathPattern: PathPattern, action: Action)
 
+case class FilterEntry(pathPattern: PathPattern, action: FilterAction)
+
+
 object InternalRoute {
 
   val getRoutes = ListBuffer[RouteEntry]()
 
-  private[hikari] val beforeFilters = scala.collection.mutable.HashMap[PathPattern, FilterAction]()
+  private[hikari] val beforeFilters = scala.collection.mutable.ListBuffer[FilterEntry]()
 
-  private[hikari] val afterMap = scala.collection.mutable.HashMap[PathPattern, FilterAction]()
+  private[hikari] val afterMap = scala.collection.mutable.ListBuffer[FilterEntry]()
 
   def get(path: String)(action: Action): Unit = {
     val routeEntry = RouteEntry("GET", SinatraPathPatternParser(path), action)
@@ -25,11 +28,11 @@ object InternalRoute {
   }
 
   def before(path: String)(action: FilterAction): Unit = {
-    beforeFilters(SinatraPathPatternParser(path)) = action
+    beforeFilters += FilterEntry(SinatraPathPatternParser(path), action)
   }
 
   def after(path: String)(action: FilterAction): Unit = {
-    afterMap(SinatraPathPatternParser(path)) = action
+    afterMap += FilterEntry(SinatraPathPatternParser(path), action)
   }
 
   def halt(code: Int): Unit = {
