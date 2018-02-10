@@ -30,8 +30,8 @@ class ExceptionHandler {
       x orElse y
     })
     val resp = ctx.channel().attr(Constants.RESPONSE_KEY).get()
-    resp.body = fun(cause)
-    resp.writeBody()
+    val body = fun(cause)
+    resp.write(body)
   }
 
 }

@@ -2,9 +2,15 @@ package hikari
 
 import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
 import io.netty.handler.codec.http._
+import io.netty.util.AsciiString
 import org.slf4j.LoggerFactory
 
 class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
+
+  private val CONTENT_TYPE = AsciiString.cached("Content-Type")
+  private val CONTENT_LENGTH = AsciiString.cached("Content-Length")
+  private val CONNECTION = AsciiString.cached("Connection")
+  private val KEEP_ALIVE = AsciiString.cached("keep-alive")
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -20,9 +26,12 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
   override def channelRead0(ctx: ChannelHandlerContext, httpRequest: FullHttpRequest): Unit = {
     val request = new Request(httpRequest)
     log.info(s"请求方法为：${request.method}，请求地址为：${request.url}")
-    val resp = new Response(ctx, httpRequest)
+    val resp = new Response(ctx)
     ctx.channel().attr(Constants.REQUEST_KEY).setIfAbsent(request)
     ctx.channel().attr(Constants.RESPONSE_KEY).setIfAbsent(resp)
+    if (HttpUtil.isKeepAlive(httpRequest)) {
+      resp.header(CONNECTION, KEEP_ALIVE)
+    }
     findAction(httpRequest.uri(), request, resp)
   }
 
@@ -67,7 +76,6 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
       a._2(request, response)
     }
 
-    response.body = body
-    response.writeBody()
+    response.write(body)
   }
 }
