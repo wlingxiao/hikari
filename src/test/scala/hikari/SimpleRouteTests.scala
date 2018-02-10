@@ -67,9 +67,8 @@ class SimpleRouteTests extends FunSuite with Matchers with BeforeAndAfter {
     }
 
     val body = Unpooled.wrappedBuffer("""{"admin": "test"}""".getBytes(UTF_8))
-    val request = new DefaultFullHttpRequest(HTTP_1_1, POST, "/users", body)
-    HttpHeaders.setHeader(request, CONTENT_TYPE, "application/json")
-
+    val request: DefaultFullHttpRequest = new DefaultFullHttpRequest(HTTP_1_1, POST, "/users", body)
+    request.headers().set(CONTENT_TYPE, "application/json")
 
     val channel = createChannel()
     channel.writeInbound(request)
