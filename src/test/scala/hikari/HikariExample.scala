@@ -24,7 +24,7 @@ object HikariExample extends App {
   }
 
   post("/users") { (req, _) =>
-    val a = req.body[ByteBody]
+    val a = req.body[Person]
     println(a)
     "created"
   }
