@@ -13,10 +13,11 @@ class ExceptionHandler {
     val haltExceptionMapper: ExceptionMapper = {
       case e: HaltException =>
         new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.valueOf(e.code))
+      case _: Throwable =>
+        new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.valueOf(500))
     }
 
     val m = ListBuffer[ExceptionMapper]()
-    m += uncaughtExceptionMapper_
     m += haltExceptionMapper
   }
 
@@ -25,20 +26,12 @@ class ExceptionHandler {
   }
 
   private[hikari] def runAll(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
-    val fun = exceptionMappers.reduceRight((x, y) => {
+    val fun = exceptionMappers.reduce((x, y) => {
       x orElse y
     })
     val resp = ctx.channel().attr(Constants.RESPONSE_KEY).get()
     resp.body = fun(cause)
     resp.writeBody()
-  }
-
-  private var uncaughtExceptionMapper_ : ExceptionMapper = {
-    case x: Throwable => throw new RuntimeException()
-  }
-
-  def uncaughtExceptionMapper(em: ExceptionMapper): Unit = {
-    uncaughtExceptionMapper_ = em
   }
 
 }

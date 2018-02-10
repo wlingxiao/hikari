@@ -6,7 +6,7 @@ object HikariExample extends App {
 
   before("/users/*") { (request, response) =>
 
-    println("before users")
+    halt(400)
 
   }
 
