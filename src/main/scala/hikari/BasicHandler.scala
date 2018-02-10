@@ -2,8 +2,11 @@ package hikari
 
 import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
 import io.netty.handler.codec.http._
+import org.slf4j.LoggerFactory
 
 class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
+
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   override def channelReadComplete(ctx: ChannelHandlerContext): Unit = {
     ctx.flush()
@@ -16,6 +19,7 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
     */
   override def channelRead0(ctx: ChannelHandlerContext, httpRequest: FullHttpRequest): Unit = {
     val request = new Request(httpRequest)
+    log.info(s"请求方法为：${request.method}，请求地址为：${request.url}")
     val resp = new Response(ctx, httpRequest)
     ctx.channel().attr(Constants.REQUEST_KEY).setIfAbsent(request)
     ctx.channel().attr(Constants.RESPONSE_KEY).setIfAbsent(resp)
