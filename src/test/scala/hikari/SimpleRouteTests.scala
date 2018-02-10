@@ -3,9 +3,10 @@ package hikari
 import hikari.InternalRoute._
 import io.netty.buffer.Unpooled
 import io.netty.channel.embedded.EmbeddedChannel
+import io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE
 import io.netty.handler.codec.http.HttpMethod._
 import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
-import io.netty.handler.codec.http.{DefaultFullHttpRequest, FullHttpResponse, HttpObjectAggregator, HttpRequestDecoder}
+import io.netty.handler.codec.http._
 import io.netty.util.CharsetUtil.UTF_8
 import org.scalatest.{BeforeAndAfter, FunSuite, Matchers}
 
@@ -58,6 +59,22 @@ class SimpleRouteTests extends FunSuite with Matchers with BeforeAndAfter {
     channel.writeInbound(request)
     val response = channel.readOutbound[FullHttpResponse]()
     response.content().toString(UTF_8) should include("admin")
+  }
+
+  test("post users header") {
+    post("/users") { (req, _) =>
+      req.header(CONTENT_TYPE.toString).getOrElse("empty")
+    }
+
+    val body = Unpooled.wrappedBuffer("""{"admin": "test"}""".getBytes(UTF_8))
+    val request = new DefaultFullHttpRequest(HTTP_1_1, POST, "/users", body)
+    HttpHeaders.setHeader(request, CONTENT_TYPE, "application/json")
+
+
+    val channel = createChannel()
+    channel.writeInbound(request)
+    val response = channel.readOutbound[FullHttpResponse]()
+    response.content().toString(UTF_8) should equal("application/json")
   }
 
   private def createChannel(): EmbeddedChannel = {
