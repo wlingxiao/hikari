@@ -2,6 +2,8 @@ package hikari
 
 import hikari.InternalRoute._
 
+case class Person(name: String, age: Int)
+
 object HikariExample extends App {
 
   before("/users/*") { (request, response) =>
@@ -21,7 +23,9 @@ object HikariExample extends App {
     throw new UnsupportedOperationException
   }
 
-  post("/users") { (request, response) =>
+  post("/users") { (req, _) =>
+    val a = req.body[ByteBody]
+    println(a)
     "created"
   }
 
