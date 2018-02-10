@@ -21,6 +21,10 @@ object HikariExample extends App {
     throw new UnsupportedOperationException
   }
 
+  post("/users") { (request, response) =>
+    "created"
+  }
+
   after("/users/*") { (request, response) =>
     println("after users")
   }

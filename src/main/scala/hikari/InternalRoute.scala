@@ -19,6 +19,11 @@ object InternalRoute {
     getRoutes += routeEntry
   }
 
+  def post(path: String)(action: Action): Unit = {
+    val routeEntry = RouteEntry("POST", SinatraPathPatternParser(path), action)
+    getRoutes += routeEntry
+  }
+
   def before(path: String)(action: FilterAction): Unit = {
     beforeFilters(SinatraPathPatternParser(path)) = action
   }
@@ -33,6 +38,12 @@ object InternalRoute {
       case 405 => throw new HaltException(code, "method not allowed")
       case _ => throw new HaltException(500, "internal server error")
     }
+  }
+
+  def clearAll(): Unit = {
+    getRoutes.clear()
+    beforeFilters.clear()
+    afterMap.clear()
   }
 
 }
