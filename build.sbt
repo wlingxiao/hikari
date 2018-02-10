@@ -4,10 +4,6 @@ version := "0.1"
 
 scalaVersion := "2.12.4"
 
-val akkaHttpVersion = "10.1.0-RC1"
-
-val akkaVersion = "2.5.8"
-
 scalacOptions ++= Seq(
   "-deprecation",
   "-encoding", "UTF-8",
@@ -21,6 +17,8 @@ parallelExecution in Test := false
 
 resolvers += Classpaths.typesafeReleases
 
+val JacksonVersion = "2.9.4"
+
 libraryDependencies ++= Seq(
   "io.netty" % "netty-all" % "4.1.21.Final",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.0",
@@ -31,4 +29,8 @@ libraryDependencies ++= Seq(
 
   // test
   "org.scalatest" %% "scalatest" % "3.0.4" % Test,
+
+  // json support
+  "com.fasterxml.jackson.core" % "jackson-core" % JacksonVersion,
+  "com.fasterxml.jackson.module" %% "jackson-module-scala" % JacksonVersion
 )
