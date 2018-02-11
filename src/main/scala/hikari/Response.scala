@@ -9,7 +9,7 @@ import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext}
 import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
 import io.netty.handler.codec.http
 import io.netty.handler.codec.http.cookie.{DefaultCookie, ServerCookieEncoder, Cookie => NettyCookie}
-import io.netty.handler.codec.http.{DefaultFullHttpResponse, HttpResponseStatus, HttpVersion}
+import io.netty.handler.codec.http.{DefaultFullHttpResponse, FullHttpRequest, HttpResponseStatus, HttpVersion}
 import io.netty.util.AsciiString
 
 import scala.collection.JavaConverters._
@@ -17,8 +17,10 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import io.netty.handler.codec.http.HttpHeaderNames._
 
+import scala.concurrent.Future
 
-class Response(ctx: ChannelHandlerContext) {
+
+class Response(ctx: ChannelHandlerContext, hp: FullHttpRequest) {
 
   private val CONTENT_TYPE = AsciiString.cached("Content-Type")
   private val CONTENT_LENGTH = AsciiString.cached("Content-Length")
@@ -52,6 +54,9 @@ class Response(ctx: ChannelHandlerContext) {
         throw new UnsupportedOperationException(s"不支持的二进制响应数据")
       case r: DefaultFullHttpResponse =>
         ctx.write(r).addListener(ChannelFutureListener.CLOSE)
+      case f: Future[_] =>
+        ctx.channel().pipeline().addLast(Executors.group, new AsyncHandler(f))
+        ctx.fireChannelRead(hp.retain())
       case any: Any =>
         val ow = new ObjectMapper()
         ow.registerModule(DefaultScalaModule)

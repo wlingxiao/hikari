@@ -28,7 +28,7 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
   override def channelRead0(ctx: ChannelHandlerContext, httpRequest: FullHttpRequest): Unit = {
     val request = new Request(httpRequest)
     log.info(s"请求方法为：${request.method}，请求地址为：${request.url}")
-    val resp = new Response(ctx)
+    val resp = new Response(ctx, httpRequest)
     ctx.channel().attr(Constants.REQUEST_KEY).setIfAbsent(request)
     ctx.channel().attr(Constants.RESPONSE_KEY).setIfAbsent(resp)
     if (HttpUtil.isKeepAlive(httpRequest)) {

@@ -2,6 +2,9 @@ package hikari
 
 import hikari.InternalRoute._
 
+import scala.concurrent.Future
+import Executors._
+
 object HikariExample extends App {
 
   before("/users/*") { (request, response) =>
@@ -34,6 +37,12 @@ object HikariExample extends App {
 
   get("/jsons") { (_, resp) =>
     Person("test", 100)
+  }
+
+  get("/async") { (_, resp) =>
+    Future {
+      "test"
+    }
   }
 
   HikariServer.start()
