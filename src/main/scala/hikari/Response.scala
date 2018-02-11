@@ -35,9 +35,9 @@ class Response(ctx: ChannelHandlerContext) {
     response.headers().set(SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookieHolder.asJava))
     if (header(KEEP_ALIVE).isDefined) {
       response.headers().set(CONNECTION, KEEP_ALIVE)
-      ctx.write(response)
+      ctx.writeAndFlush(response)
     } else {
-      ctx.write(response).addListener(ChannelFutureListener.CLOSE)
+      ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE)
     }
   }
 
