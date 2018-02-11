@@ -96,6 +96,22 @@ class SimpleRouteTests extends FunSuite with Matchers with BeforeAndAfter {
     response.content().toString(UTF_8) should equal("123")
   }
 
+  test("在 Request 中共享参数") {
+
+    InternalRoute.before("/users/*") { (req, _) =>
+      req.params(626, "test")
+    }
+
+    get("/users/:id") { (req, _) =>
+      req.params[String](626).get
+    }
+
+    val request = new DefaultFullHttpRequest(HTTP_1_1, GET, "/users/123")
+    val channel = createChannel()
+    channel.writeInbound(request)
+    val response = channel.readOutbound[FullHttpResponse]()
+    response.content().toString(UTF_8) should equal("test")
+  }
 
   private def createChannel(): EmbeddedChannel = {
     new EmbeddedChannel(new HttpRequestDecoder(), new HttpObjectAggregator(Short.MaxValue), new BasicHandler)

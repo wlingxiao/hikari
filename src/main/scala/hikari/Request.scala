@@ -11,6 +11,7 @@ import org.json4s.{DefaultFormats, Formats}
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 
 class ByteBody {}
 
@@ -78,6 +79,19 @@ class Request(httpRequest: FullHttpRequest) {
 
   def cookie(name: String): Option[Cookie] = {
     cookies().find(x => x.name == name)
+  }
+
+  private val paramsMap = mutable.HashMap[Any, Any]()
+
+  def params(key: Any, value: Any): Unit = {
+    paramsMap(key) = value
+  }
+
+  def params[T](key: Any)(implicit mf: Manifest[T]): Option[T] = {
+    paramsMap.get(key) match {
+      case Some(x) if mf.runtimeClass.isInstance(x) => Some(x.asInstanceOf[T])
+      case _ => None
+    }
   }
 
 }

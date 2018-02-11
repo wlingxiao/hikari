@@ -41,7 +41,7 @@ class Response(ctx: ChannelHandlerContext) {
         writeByte(str.getBytes(Charset.forName("UTF-8")))
       case r: DefaultFullHttpResponse =>
         ctx.write(r).addListener(ChannelFutureListener.CLOSE)
-      case _ => throw new UnsupportedOperationException("不支持的返回类型")
+      case any: Any => throw new UnsupportedOperationException(s"不支持的响应类型：${any.getClass.getName}")
     }
   }
 
