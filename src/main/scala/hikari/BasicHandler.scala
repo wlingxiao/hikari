@@ -22,6 +22,8 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
     * 读取 post 和 put body
     * https://stackoverflow.com/questions/34991616/netty-how-to-detect-extract-contents-of-posts
     *
+    * io.netty.util.IllegalReferenceCountException: refCnt: 0 in Netty
+    * https://stackoverflow.com/questions/41556208/io-netty-util-illegalreferencecountexception-refcnt-0-in-netty
     */
   override def channelRead0(ctx: ChannelHandlerContext, httpRequest: FullHttpRequest): Unit = {
     val request = new Request(httpRequest)
