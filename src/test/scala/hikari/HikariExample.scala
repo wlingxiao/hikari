@@ -29,5 +29,10 @@ object HikariExample extends App {
     println("after users")
   }
 
+  get("/sessions") { (_, resp) =>
+    resp.cookie("token", "helloworld")
+    "success"
+  }
+
   HikariServer.start()
 }

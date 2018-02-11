@@ -73,7 +73,7 @@ class Request(httpRequest: FullHttpRequest) {
     val cookieString = httpRequest.headers().get(COOKIE)
     if (cookieString != null) {
       val cookies = ServerCookieDecoder.STRICT.decode(cookieString)
-      cookies.asScala.map(x => Cookie(x.name(), x.value())).toList
+      cookies.asScala.map(Cookie.nettyCookieToCookie).toList
     } else Nil
   }
 

@@ -5,10 +5,15 @@ import java.nio.charset.Charset
 import io.netty.buffer.Unpooled
 import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext}
 import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
-import io.netty.handler.codec.http._
+import io.netty.handler.codec.http
+import io.netty.handler.codec.http.cookie.{DefaultCookie, ServerCookieEncoder, Cookie => NettyCookie}
+import io.netty.handler.codec.http.{DefaultFullHttpResponse, HttpResponseStatus, HttpVersion}
 import io.netty.util.AsciiString
-
+import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
+import io.netty.handler.codec.http.HttpHeaderNames._
+
 
 class Response(ctx: ChannelHandlerContext) {
 
@@ -27,6 +32,7 @@ class Response(ctx: ChannelHandlerContext) {
     for ((name, value) <- intHeaderMap) {
       response.headers().setInt(name, value)
     }
+    response.headers().set(SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookieHolder.asJava))
     if (header(KEEP_ALIVE).isDefined) {
       response.headers().set(CONNECTION, KEEP_ALIVE)
       ctx.write(response)
@@ -81,6 +87,20 @@ class Response(ctx: ChannelHandlerContext) {
 
   def version_(newValue: String): Unit = {
     privateVersion = HttpVersion.valueOf(newValue)
+  }
+
+  private val cookieHolder = new ListBuffer[NettyCookie]()
+
+  def cookie(c: Cookie): Unit = {
+    cookieHolder += c
+  }
+
+  /**
+    * Cookie
+    */
+  def cookie(name: String, value: String): Unit = {
+    val c = Cookie(name, value)
+    cookieHolder += c
   }
 
 }
