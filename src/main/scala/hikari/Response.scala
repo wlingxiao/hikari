@@ -2,6 +2,8 @@ package hikari
 
 import java.nio.charset.Charset
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import io.netty.buffer.Unpooled
 import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext}
 import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
@@ -9,6 +11,7 @@ import io.netty.handler.codec.http
 import io.netty.handler.codec.http.cookie.{DefaultCookie, ServerCookieEncoder, Cookie => NettyCookie}
 import io.netty.handler.codec.http.{DefaultFullHttpResponse, HttpResponseStatus, HttpVersion}
 import io.netty.util.AsciiString
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
@@ -45,9 +48,16 @@ class Response(ctx: ChannelHandlerContext) {
     body match {
       case str: String =>
         writeByte(str.getBytes(Charset.forName("UTF-8")))
+      case bytes: Array[Byte] =>
+        throw new UnsupportedOperationException(s"不支持的二进制响应数据")
       case r: DefaultFullHttpResponse =>
         ctx.write(r).addListener(ChannelFutureListener.CLOSE)
-      case any: Any => throw new UnsupportedOperationException(s"不支持的响应类型：${any.getClass.getName}")
+      case any: Any =>
+        val ow = new ObjectMapper()
+        ow.registerModule(DefaultScalaModule)
+        ow.writer.withDefaultPrettyPrinter
+        val json = ow.writeValueAsString(any)
+        writeByte(json.getBytes(Charset.forName("UTF-8")), "application/json; charset=UTF-8")
     }
   }
 

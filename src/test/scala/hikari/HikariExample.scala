@@ -2,8 +2,6 @@ package hikari
 
 import hikari.InternalRoute._
 
-case class Person(name: String, age: Int)
-
 object HikariExample extends App {
 
   before("/users/*") { (request, response) =>
@@ -32,6 +30,10 @@ object HikariExample extends App {
   get("/sessions") { (_, resp) =>
     resp.cookie("token", "helloworld")
     "success"
+  }
+
+  get("/jsons") { (_, resp) =>
+    Person("test", 100)
   }
 
   HikariServer.start()
