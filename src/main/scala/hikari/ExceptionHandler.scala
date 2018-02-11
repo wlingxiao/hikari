@@ -16,9 +16,10 @@ class ExceptionHandler {
     val haltExceptionMapper: ExceptionMapper = {
       case e: HaltException =>
         new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.valueOf(e.code))
-      case t: Throwable =>
-        log.error("内部错误", t)
+      case e: Exception =>
+        log.error("内部错误", e)
         new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.valueOf(500))
+      case t: Throwable => throw t
     }
 
     val m = ListBuffer[ExceptionMapper]()
