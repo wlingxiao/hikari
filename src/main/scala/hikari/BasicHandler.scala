@@ -48,20 +48,22 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
       request.pathPattern.isDefined
     }).foreach(_.action(request, response))
 
-    val matchedPattern = InternalRoute.getRoutes.filter(x => {
+    val pathMatched = InternalRoute.getRoutes.filter(x => {
       x.pathPattern(url).isDefined
     })
-
-    val aba = matchedPattern.sortWith((x, y) => x > y).headOption
-
-    val body = if (aba.isDefined) {
-      val a = aba.get
-      if (a.method != request.method) {
-        InternalRoute.halt(405)
-      }
-      request.pathPattern = a.pathPattern(url)
-      a.action(request, response)
+    if (pathMatched.isEmpty) {
+      InternalRoute.halt(404)
     }
+
+    val methodMatched = pathMatched.filter(x => x.method == request.method)
+    if (methodMatched.isEmpty) {
+      InternalRoute.halt(405)
+    }
+
+    val aba = methodMatched.sortWith((x, y) => x > y).headOption
+    val a = aba.get
+    request.pathPattern = a.pathPattern(url)
+    val body = a.action(request, response)
 
     InternalRoute.afterMap.find(x => {
       request.pathPattern = x.pathPattern(url)

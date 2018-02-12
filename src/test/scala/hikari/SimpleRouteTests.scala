@@ -125,6 +125,23 @@ class SimpleRouteTests extends FunSuite with Matchers with BeforeAndAfter {
     response.content().toString(UTF_8) should equal("async")
   }
 
+  test("full routes") {
+    get("/users/:id") { (req, _) =>
+      "get"
+    }
+
+    post("/users/:id") { (req, _) =>
+      "post"
+    }
+
+    val request = new DefaultFullHttpRequest(HTTP_1_1, POST, "/users/123")
+    val channel = createChannel()
+    channel.writeInbound(request)
+    val response = channel.readOutbound[FullHttpResponse]()
+    response.content().toString(UTF_8) should equal("post")
+  }
+
+
   private def createChannel(): EmbeddedChannel = {
     new EmbeddedChannel(new HttpRequestDecoder(), new HttpObjectAggregator(Short.MaxValue), new BasicHandler)
   }
