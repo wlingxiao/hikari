@@ -157,7 +157,7 @@ class SimpleRouteTests extends FunSuite with Matchers with BeforeAndAfter {
     response.content().toString(UTF_8) should equal("put")
   }
 
-  test("download file") {
+  /*test("download file") {
     get("/files") { (req, _) =>
       val bytes = Array[Byte]('a', 'b', 'c')
       ByteBuf(bytes, "text/plain")
@@ -168,7 +168,7 @@ class SimpleRouteTests extends FunSuite with Matchers with BeforeAndAfter {
     channel.writeInbound(request)
     val response = channel.readOutbound[FullHttpResponse]()
     response.content().toString(UTF_8) should equal("abc")
-  }
+  }*/
 
   test("upload file") {
     post("/files") { (req, _) =>

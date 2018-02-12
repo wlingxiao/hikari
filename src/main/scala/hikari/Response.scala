@@ -5,12 +5,13 @@ import java.nio.charset.Charset
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import io.netty.buffer.{Unpooled, ByteBuf => NettyByteBuf}
-import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext}
+import io.netty.channel._
 import io.netty.handler.codec.http.HttpHeaderNames._
 import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
 import io.netty.handler.codec.http.cookie.{ServerCookieEncoder, Cookie => NettyCookie}
-import io.netty.handler.codec.http.{DefaultFullHttpResponse, FullHttpRequest, HttpResponseStatus, HttpVersion}
+import io.netty.handler.codec.http.{DefaultFullHttpResponse, DefaultHttpResponse, FullHttpRequest, HttpHeaderNames, HttpHeaderValues, HttpResponseStatus, HttpUtil, HttpVersion, LastHttpContent}
 import io.netty.util.AsciiString
+import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -19,6 +20,8 @@ import scala.concurrent.Future
 
 
 class Response(ctx: ChannelHandlerContext, hp: FullHttpRequest) {
+
+  private val log = LoggerFactory.getLogger(this.getClass)
 
   private val CONTENT_TYPE = "Content-Type"
   private val CONTENT_LENGTH = "Content-Length"
@@ -74,6 +77,34 @@ class Response(ctx: ChannelHandlerContext, hp: FullHttpRequest) {
       case f: Future[_] =>
         ctx.channel().pipeline().addLast(Executors.group, new AsyncHandler(f))
         ctx.fireChannelRead(hp.retain())
+      case bin: Binary =>
+        val response = new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.OK)
+        HttpUtil.setTransferEncodingChunked(response, true)
+        if (HttpUtil.isKeepAlive(hp)) {
+          response.headers.set(HttpHeaderNames.CONNECTION, HttpHeaderValues.KEEP_ALIVE)
+        }
+        // Write the initial line and the header.
+        ctx.write(response)
+        val region = new DefaultFileRegion(bin.file.getChannel, 0, bin.file.length())
+        ctx.write(region, ctx.newProgressivePromise())
+          .addListener(new ChannelProgressiveFutureListener() {
+            override def operationProgressed(future: ChannelProgressiveFuture, progress: Long, total: Long): Unit = {
+              if (total < 0) {
+                log.error(future.channel + " Transfer progress: " + progress)
+              } else {
+                log.info(future.channel + " Transfer progress: " + progress + " / " + total)
+              }
+            }
+
+            override def operationComplete(future: ChannelProgressiveFuture): Unit = {
+              log.info(future.channel() + " Transfer complete.")
+            }
+          })
+        val lastContentFuture = ctx.writeAndFlush(LastHttpContent.EMPTY_LAST_CONTENT)
+        if (!HttpUtil.isKeepAlive(hp)) {
+          // Close the connection when the whole content is written out.
+          lastContentFuture.addListener(ChannelFutureListener.CLOSE)
+        }
       case any: Any =>
         val ow = new ObjectMapper()
         ow.registerModule(DefaultScalaModule)

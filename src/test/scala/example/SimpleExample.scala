@@ -1,12 +1,12 @@
 package example
 
 import java.io.File
-import java.nio.file.{Files, Paths}
+import java.nio.file.Paths
 
 import hikari.Executors._
 import hikari.Filters._
 import hikari.Routes._
-import hikari.{ByteBuf, HikariServer}
+import hikari.{Binary, ByteBuf, HikariServer}
 
 import scala.concurrent.Future
 
@@ -77,9 +77,7 @@ object SimpleExample extends App {
 
   get("/files") { (_, _) =>
     val path = Paths.get("z://work//test")
-    val data = Files.readAllBytes(path)
-
-    ByteBuf(data, "image/jpeg")
+    Binary(path.toFile, "image/jpeg")
   }
 
   HikariServer.start()

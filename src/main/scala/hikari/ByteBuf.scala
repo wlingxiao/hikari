@@ -1,19 +1,28 @@
 package hikari
 
-import io.netty.buffer.{Unpooled, ByteBuf => NettyByteBuf}
+import java.io.{File, RandomAccessFile}
 
-class ByteBuf(val buffer: NettyByteBuf, val contentType: String) {
+import io.netty.buffer.{ByteBuf => NettyByteBuf}
 
-  def this(content: Array[Byte], contentType: String) {
-    this(Unpooled.wrappedBuffer(content), contentType)
-  }
-
-}
+class ByteBuf(val buffer: NettyByteBuf, val contentType: String)
 
 object ByteBuf {
 
   def apply(buf: NettyByteBuf, contentType: String): ByteBuf = new ByteBuf(buf, contentType)
 
-  def apply(array: Array[Byte], contentType: String): ByteBuf = new ByteBuf(array, contentType)
+}
 
+class Binary(val file: RandomAccessFile, val contentType: String) {
+
+  def this(file: File, contentType: String) {
+    this(new RandomAccessFile(file, "r"), contentType)
+  }
+
+}
+
+object Binary {
+
+  def apply(file: File, contentType: String) = new Binary(file, contentType)
+
+  def apply(file: RandomAccessFile, contentType: String) = new Binary(file, contentType)
 }
