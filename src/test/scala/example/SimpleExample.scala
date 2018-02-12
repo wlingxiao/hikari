@@ -1,9 +1,12 @@
 package example
 
+import java.io.File
+import java.nio.file.{Files, Paths}
+
 import hikari.Executors._
 import hikari.Filters._
 import hikari.Routes._
-import hikari.HikariServer
+import hikari.{ByteBuf, HikariServer}
 
 import scala.concurrent.Future
 
@@ -45,6 +48,38 @@ object SimpleExample extends App {
     Future {
       "test"
     }
+  }
+
+  post("/files") { (req, _) =>
+    val f = req.body[ByteBuf]
+    if (f.isDefined) {
+      val buffer = f.get.buffer
+      val file = new File("Z:\\Work" + "\\test")
+
+      import java.io.FileOutputStream
+      val outputStream = new FileOutputStream(file)
+      val size = buffer.readableBytes()
+      try {
+        val localfileChannel = outputStream.getChannel
+        val byteBuffer = buffer.nioBuffer
+        var written = 0
+        while (written < size) {
+          written += localfileChannel.write(byteBuffer)
+        }
+        buffer.readerIndex(buffer.readerIndex + written)
+        localfileChannel.force(false)
+      } finally outputStream.close()
+    }
+
+
+    "success"
+  }
+
+  get("/files") { (_, _) =>
+    val path = Paths.get("z://work//test")
+    val data = Files.readAllBytes(path)
+
+    ByteBuf(data, "image/jpeg")
   }
 
   HikariServer.start()

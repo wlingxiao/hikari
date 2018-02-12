@@ -157,6 +157,35 @@ class SimpleRouteTests extends FunSuite with Matchers with BeforeAndAfter {
     response.content().toString(UTF_8) should equal("put")
   }
 
+  test("download file") {
+    get("/files") { (req, _) =>
+      val bytes = Array[Byte]('a', 'b', 'c')
+      ByteBuf(bytes, "text/plain")
+    }
+
+    val request = new DefaultFullHttpRequest(HTTP_1_1, GET, "/files")
+    val channel = createChannel()
+    channel.writeInbound(request)
+    val response = channel.readOutbound[FullHttpResponse]()
+    response.content().toString(UTF_8) should equal("abc")
+  }
+
+  test("upload file") {
+    post("/files") { (req, _) =>
+      val buf = req.body[ByteBuf]
+      buf.get.contentType
+    }
+
+    val body = Unpooled.wrappedBuffer("abc".getBytes(UTF_8))
+    val request: DefaultFullHttpRequest = new DefaultFullHttpRequest(HTTP_1_1, POST, "/files", body)
+    request.headers().set(CONTENT_TYPE, "image/jpeg")
+
+    val channel = createChannel()
+    channel.writeInbound(request)
+    val response = channel.readOutbound[FullHttpResponse]()
+    response.content().toString(UTF_8) should equal("image/jpeg")
+  }
+
   private def createChannel(): EmbeddedChannel = {
     new EmbeddedChannel(new HttpRequestDecoder(), new HttpObjectAggregator(Short.MaxValue), new BasicHandler)
   }

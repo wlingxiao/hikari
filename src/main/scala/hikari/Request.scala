@@ -5,7 +5,6 @@ import java.nio.charset.Charset
 import io.netty.handler.codec.http.HttpHeaderNames.COOKIE
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder
 import io.netty.handler.codec.http.{FullHttpRequest, HttpMethod}
-import io.netty.util.AsciiString
 import org.json4s.jackson.JsonMethods
 import org.json4s.{DefaultFormats, Formats}
 import org.slf4j.LoggerFactory
@@ -17,7 +16,7 @@ class ByteBody {}
 
 class Request(httpRequest: FullHttpRequest) {
 
-  private val CONTENT_TYPE = AsciiString.cached("Content-Type")
+  private val CONTENT_TYPE = "Content-Type"
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
@@ -30,9 +29,9 @@ class Request(httpRequest: FullHttpRequest) {
   def body[T](implicit mf: Manifest[T]): Option[T] = {
 
     mf match {
-      case m if mf == manifest[ByteBody] =>
-        log.warn("不支持二进制文件的请求体")
-        None
+      case m if mf == manifest[ByteBuf] =>
+        val content = httpRequest.content()
+        Option(ByteBuf(content, contentType.getOrElse("text/plain"))).asInstanceOf[Option[T]]
       case _ =>
         if (httpRequest.method().equals(HttpMethod.POST) || httpRequest.method().equals(HttpMethod.PUT)) {
           if (header("Content-Type".toLowerCase()).isDefined && header("Content-Type".toLowerCase).get.contains("application/json")) {
@@ -65,6 +64,7 @@ class Request(httpRequest: FullHttpRequest) {
     pathPattern.get(name).mkString("")
   }
 
+  def contentType: Option[String] = header(CONTENT_TYPE.toLowerCase())
 
   var pathPattern: Option[MultiParams] = None
 

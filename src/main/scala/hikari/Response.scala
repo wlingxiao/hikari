@@ -4,7 +4,7 @@ import java.nio.charset.Charset
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
-import io.netty.buffer.Unpooled
+import io.netty.buffer.{Unpooled, ByteBuf => NettyByteBuf}
 import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext}
 import io.netty.handler.codec.http.HttpHeaderNames._
 import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
@@ -44,12 +44,31 @@ class Response(ctx: ChannelHandlerContext, hp: FullHttpRequest) {
     }
   }
 
+  private def writeByteBuf(result: NettyByteBuf, contentType: String = "text/plain"): Unit = {
+    val response = new DefaultFullHttpResponse(privateVersion, HttpResponseStatus.valueOf(status), result)
+    header(CONTENT_TYPE, contentType)
+    header(CONTENT_LENGTH, response.content().readableBytes())
+    for ((name, value) <- headerMap) {
+      response.headers().set(AsciiString.cached(name), AsciiString.cached(value))
+    }
+    for ((name, value) <- intHeaderMap) {
+      response.headers().setInt(AsciiString.cached(name), value)
+    }
+    response.headers().set(SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookieHolder.asJava))
+    if (header("keep-alive").isDefined) {
+      response.headers().set(CONNECTION, KEEP_ALIVE)
+      ctx.writeAndFlush(response)
+    } else {
+      ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE)
+    }
+  }
+
   def write(body: Any): Unit = {
     body match {
       case str: String =>
         writeByte(str.getBytes(Charset.forName("UTF-8")))
-      case bytes: Array[Byte] =>
-        throw new UnsupportedOperationException(s"不支持的二进制响应数据")
+      case bytes: ByteBuf =>
+        writeByteBuf(bytes.buffer, bytes.contentType)
       case r: DefaultFullHttpResponse =>
         ctx.write(r).addListener(ChannelFutureListener.CLOSE)
       case f: Future[_] =>
