@@ -30,10 +30,10 @@ class Response(ctx: ChannelHandlerContext, hp: FullHttpRequest) {
     header(CONTENT_TYPE, contentType)
     header(CONTENT_LENGTH, response.content().readableBytes())
     for ((name, value) <- headerMap) {
-      response.headers().set(name, value)
+      response.headers().set(AsciiString.cached(name), AsciiString.cached(value))
     }
     for ((name, value) <- intHeaderMap) {
-      response.headers().setInt(name, value)
+      response.headers().setInt(AsciiString.cached(name), value)
     }
     response.headers().set(SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookieHolder.asJava))
     if (header("keep-alive").isDefined) {
@@ -64,10 +64,6 @@ class Response(ctx: ChannelHandlerContext, hp: FullHttpRequest) {
     }
   }
 
-  private implicit def str2AsciiString(str: String): AsciiString = {
-    AsciiString.cached(str)
-  }
-
   def header(name: String, value: String): Unit = {
     headerMap(name) = value
   }
@@ -80,9 +76,9 @@ class Response(ctx: ChannelHandlerContext, hp: FullHttpRequest) {
     headerMap.get(name).orElse(intHeaderMap.get(name)).map(_.toString)
   }
 
-  private val headerMap = mutable.HashMap[AsciiString, AsciiString]()
+  private val headerMap = mutable.HashMap[String, String]()
 
-  private val intHeaderMap = mutable.HashMap[AsciiString, Int]()
+  private val intHeaderMap = mutable.HashMap[String, Int]()
 
   /**
     * http status
