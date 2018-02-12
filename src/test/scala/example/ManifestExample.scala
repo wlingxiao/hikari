@@ -1,4 +1,4 @@
-package hikari
+package example
 
 import org.json4s.{DefaultFormats, Formats}
 

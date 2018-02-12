@@ -3,7 +3,7 @@ package example
 import hikari.Executors._
 import hikari.Filters._
 import hikari.Routes._
-import hikari.{HikariServer, Person}
+import hikari.HikariServer
 
 import scala.concurrent.Future
 

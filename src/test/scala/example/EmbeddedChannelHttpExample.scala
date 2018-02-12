@@ -1,5 +1,6 @@
-package hikari
+package example
 
+import hikari.BasicHandler
 import io.netty.buffer.Unpooled
 import io.netty.channel.embedded.EmbeddedChannel
 import io.netty.handler.codec.http._
