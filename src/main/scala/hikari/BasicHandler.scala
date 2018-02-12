@@ -9,8 +9,8 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
 
   private val CONTENT_TYPE = AsciiString.cached("Content-Type")
   private val CONTENT_LENGTH = AsciiString.cached("Content-Length")
-  private val CONNECTION = AsciiString.cached("Connection")
-  private val KEEP_ALIVE = AsciiString.cached("keep-alive")
+  private val CONNECTION = "Connection"
+  private val KEEP_ALIVE = "keep-alive"
 
   private val log = LoggerFactory.getLogger(this.getClass)
 

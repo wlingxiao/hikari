@@ -6,28 +6,26 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import io.netty.buffer.Unpooled
 import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext}
+import io.netty.handler.codec.http.HttpHeaderNames._
 import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
-import io.netty.handler.codec.http
-import io.netty.handler.codec.http.cookie.{DefaultCookie, ServerCookieEncoder, Cookie => NettyCookie}
+import io.netty.handler.codec.http.cookie.{ServerCookieEncoder, Cookie => NettyCookie}
 import io.netty.handler.codec.http.{DefaultFullHttpResponse, FullHttpRequest, HttpResponseStatus, HttpVersion}
 import io.netty.util.AsciiString
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
-import io.netty.handler.codec.http.HttpHeaderNames._
-
 import scala.concurrent.Future
 
 
 class Response(ctx: ChannelHandlerContext, hp: FullHttpRequest) {
 
-  private val CONTENT_TYPE = AsciiString.cached("Content-Type")
-  private val CONTENT_LENGTH = AsciiString.cached("Content-Length")
+  private val CONTENT_TYPE = "Content-Type"
+  private val CONTENT_LENGTH = "Content-Length"
   private val CONNECTION = AsciiString.cached("Connection")
   private val KEEP_ALIVE = AsciiString.cached("keep-alive")
 
-  private def writeByte(result: Array[Byte], contentType: CharSequence = "text/plain"): Unit = {
+  private def writeByte(result: Array[Byte], contentType: String = "text/plain"): Unit = {
     val response = new DefaultFullHttpResponse(privateVersion, HttpResponseStatus.valueOf(status), Unpooled.wrappedBuffer(result))
     header(CONTENT_TYPE, contentType)
     header(CONTENT_LENGTH, response.content().readableBytes())
@@ -38,7 +36,7 @@ class Response(ctx: ChannelHandlerContext, hp: FullHttpRequest) {
       response.headers().setInt(name, value)
     }
     response.headers().set(SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookieHolder.asJava))
-    if (header(KEEP_ALIVE).isDefined) {
+    if (header("keep-alive").isDefined) {
       response.headers().set(CONNECTION, KEEP_ALIVE)
       ctx.writeAndFlush(response)
     } else {
@@ -66,21 +64,25 @@ class Response(ctx: ChannelHandlerContext, hp: FullHttpRequest) {
     }
   }
 
-  def header(name: CharSequence, value: CharSequence): Unit = {
+  private implicit def str2AsciiString(str: String): AsciiString = {
+    AsciiString.cached(str)
+  }
+
+  def header(name: String, value: String): Unit = {
     headerMap(name) = value
   }
 
-  def header(name: CharSequence, value: Int): Unit = {
+  def header(name: String, value: Int): Unit = {
     intHeaderMap(name) = value
   }
 
-  def header(name: CharSequence): Option[CharSequence] = {
+  def header(name: String): Option[String] = {
     headerMap.get(name).orElse(intHeaderMap.get(name)).map(_.toString)
   }
 
-  private val headerMap = mutable.HashMap[CharSequence, CharSequence]()
+  private val headerMap = mutable.HashMap[AsciiString, AsciiString]()
 
-  private val intHeaderMap = mutable.HashMap[CharSequence, Int]()
+  private val intHeaderMap = mutable.HashMap[AsciiString, Int]()
 
   /**
     * http status
