@@ -21,7 +21,7 @@ case class RouteEntry(method: String, pathPattern: PathPattern, action: Action, 
 case class FilterEntry(pathPattern: PathPattern, action: FilterAction)
 
 
-object InternalRoute {
+private[hikari] object InternalRoute {
 
   val getRoutes = ListBuffer[RouteEntry]()
 
@@ -35,6 +35,21 @@ object InternalRoute {
   }
 
   def post(path: String)(action: Action): Unit = {
+    val routeEntry = RouteEntry("POST", SinatraPathPatternParser(path), action, path)
+    getRoutes += routeEntry
+  }
+
+  def put(path: String)(action: Action): Unit = {
+    val routeEntry = RouteEntry("POST", SinatraPathPatternParser(path), action, path)
+    getRoutes += routeEntry
+  }
+
+  def delete(path: String)(action: Action): Unit = {
+    val routeEntry = RouteEntry("POST", SinatraPathPatternParser(path), action, path)
+    getRoutes += routeEntry
+  }
+
+  def options(path: String)(action: Action): Unit = {
     val routeEntry = RouteEntry("POST", SinatraPathPatternParser(path), action, path)
     getRoutes += routeEntry
   }

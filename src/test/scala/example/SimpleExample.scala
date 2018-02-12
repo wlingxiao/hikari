@@ -1,11 +1,13 @@
-package hikari
+package example
 
-import hikari.InternalRoute._
+import hikari.Executors._
+import hikari.Filters._
+import hikari.Routes._
+import hikari.{HikariServer, Person}
 
 import scala.concurrent.Future
-import Executors._
 
-object HikariExample extends App {
+object SimpleExample extends App {
 
   before("/users/*") { (request, response) =>
 
