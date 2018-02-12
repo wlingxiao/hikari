@@ -40,17 +40,17 @@ private[hikari] object InternalRoute {
   }
 
   def put(path: String)(action: Action): Unit = {
-    val routeEntry = RouteEntry("POST", SinatraPathPatternParser(path), action, path)
+    val routeEntry = RouteEntry("PUT", SinatraPathPatternParser(path), action, path)
     getRoutes += routeEntry
   }
 
   def delete(path: String)(action: Action): Unit = {
-    val routeEntry = RouteEntry("POST", SinatraPathPatternParser(path), action, path)
+    val routeEntry = RouteEntry("DELETE", SinatraPathPatternParser(path), action, path)
     getRoutes += routeEntry
   }
 
   def options(path: String)(action: Action): Unit = {
-    val routeEntry = RouteEntry("POST", SinatraPathPatternParser(path), action, path)
+    val routeEntry = RouteEntry("OPTIONS", SinatraPathPatternParser(path), action, path)
     getRoutes += routeEntry
   }
 
