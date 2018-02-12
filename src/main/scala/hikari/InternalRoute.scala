@@ -1,6 +1,7 @@
 package hikari
 
 import hikari.matcher.{PathPattern, SinatraPathPatternParser}
+import io.netty.handler.codec.http.HttpResponseStatus
 
 import scala.collection.mutable.ListBuffer
 
@@ -65,11 +66,8 @@ private[hikari] object InternalRoute {
   }
 
   def halt(code: Int): Unit = {
-    code match {
-      case 400 => throw new HaltException(code, "bad request")
-      case 405 => throw new HaltException(code, "method not allowed")
-      case _ => throw new HaltException(500, "internal server error")
-    }
+    val status = HttpResponseStatus.valueOf(code)
+    throw new HaltException(status.code(), status.reasonPhrase())
   }
 
   def clearAll(): Unit = {
