@@ -23,7 +23,9 @@ case class FilterEntry(pathPattern: PathPattern, action: FilterAction)
 
 private[hikari] object InternalRoute {
 
-  val getRoutes = ListBuffer[RouteEntry]()
+  private val routeHolders = ListBuffer[RouteEntry]()
+
+  private[hikari] def routes: List[RouteEntry] = routeHolders.toList
 
   private[hikari] val beforeFilters = scala.collection.mutable.ListBuffer[FilterEntry]()
 
@@ -31,27 +33,27 @@ private[hikari] object InternalRoute {
 
   def get(path: String)(action: Action): Unit = {
     val routeEntry = RouteEntry("GET", SinatraPathPatternParser(path), action, path)
-    getRoutes += routeEntry
+    routeHolders += routeEntry
   }
 
   def post(path: String)(action: Action): Unit = {
     val routeEntry = RouteEntry("POST", SinatraPathPatternParser(path), action, path)
-    getRoutes += routeEntry
+    routeHolders += routeEntry
   }
 
   def put(path: String)(action: Action): Unit = {
     val routeEntry = RouteEntry("PUT", SinatraPathPatternParser(path), action, path)
-    getRoutes += routeEntry
+    routeHolders += routeEntry
   }
 
   def delete(path: String)(action: Action): Unit = {
     val routeEntry = RouteEntry("DELETE", SinatraPathPatternParser(path), action, path)
-    getRoutes += routeEntry
+    routeHolders += routeEntry
   }
 
   def options(path: String)(action: Action): Unit = {
     val routeEntry = RouteEntry("OPTIONS", SinatraPathPatternParser(path), action, path)
-    getRoutes += routeEntry
+    routeHolders += routeEntry
   }
 
   def before(path: String)(action: FilterAction): Unit = {
@@ -71,7 +73,7 @@ private[hikari] object InternalRoute {
   }
 
   def clearAll(): Unit = {
-    getRoutes.clear()
+    routeHolders.clear()
     beforeFilters.clear()
     afterMap.clear()
   }

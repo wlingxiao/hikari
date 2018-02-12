@@ -48,7 +48,7 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
       request.pathPattern.isDefined
     }).foreach(_.action(request, response))
 
-    val pathMatched = InternalRoute.getRoutes.filter(x => {
+    val pathMatched = InternalRoute.routes.filter(x => {
       x.pathPattern(url).isDefined
     })
     if (pathMatched.isEmpty) {
