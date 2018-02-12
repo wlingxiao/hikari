@@ -18,6 +18,8 @@ resolvers += Classpaths.typesafeReleases
 
 val JacksonVersion = "2.9.4"
 
+val SwaggerVersion = "1.5.18"
+
 libraryDependencies ++= Seq(
   "io.netty" % "netty-all" % "4.1.21.Final",
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.0",
@@ -32,5 +34,11 @@ libraryDependencies ++= Seq(
   // json support
   "com.fasterxml.jackson.core" % "jackson-core" % JacksonVersion,
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % JacksonVersion,
-  "org.json4s" %% "json4s-jackson" % "3.5.3"
+  "org.json4s" %% "json4s-jackson" % "3.5.3",
+
+  // swagger
+  "io.swagger" % "swagger-core" % SwaggerVersion,
+  "io.swagger" % "swagger-annotations" % SwaggerVersion,
+  "io.swagger" % "swagger-models" % SwaggerVersion,
+  "org.webjars" % "swagger-ui" % "2.2.10-1"
 )
