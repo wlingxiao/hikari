@@ -1,5 +1,6 @@
 package hikari
 
+import java.net.URI
 import java.nio.charset.Charset
 
 import io.netty.handler.codec.http.HttpHeaderNames.COOKIE
@@ -57,8 +58,8 @@ class Request(httpRequest: FullHttpRequest) {
 
   def raw: FullHttpRequest = httpRequest
 
-  def url: String = {
-    httpRequest.uri()
+  def path: String = {
+    new URI(httpRequest.uri()).getPath
   }
 
   def headers: Map[String, String] = {
