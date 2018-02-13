@@ -2,6 +2,7 @@ package hikari
 
 import java.nio.charset.Charset
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import io.netty.buffer.{Unpooled, ByteBuf => NettyByteBuf}
@@ -107,6 +108,7 @@ class Response(ctx: ChannelHandlerContext, hp: FullHttpRequest) {
         }
       case any: Any =>
         val ow = new ObjectMapper()
+        ow.setSerializationInclusion(Include.NON_NULL)
         ow.registerModule(DefaultScalaModule)
         ow.writer.withDefaultPrettyPrinter
         val json = ow.writeValueAsString(any)
