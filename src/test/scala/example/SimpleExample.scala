@@ -87,5 +87,10 @@ object SimpleExample extends App {
     a.get.mkString("")
   }
 
+  post("/form") { (req, _) =>
+    val ret = req.form("name")
+    ret.get.mkString("")
+  }
+
   HikariServer.start()
 }

@@ -5,6 +5,8 @@ import java.nio.charset.Charset
 
 import io.netty.handler.codec.http.HttpHeaderNames.COOKIE
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder
+import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType
+import io.netty.handler.codec.http.multipart.{Attribute, HttpPostRequestDecoder}
 import io.netty.handler.codec.http.{FullHttpRequest, HttpMethod, QueryStringDecoder}
 import org.json4s.jackson.JsonMethods
 import org.json4s.{DefaultFormats, Formats}
@@ -12,6 +14,7 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 
 class ByteBody {}
 
@@ -55,6 +58,26 @@ class Request(httpRequest: FullHttpRequest) {
     }
   }
 
+  def form(name: String): Option[List[String]] = {
+    val decoder = new HttpPostRequestDecoder(httpRequest)
+    val data = decoder.getBodyHttpDatas(name)
+    try {
+      val ret = ListBuffer[String]()
+      for (x <- data.asScala) {
+        if (x.getHttpDataType == HttpDataType.Attribute) {
+          val y = x.asInstanceOf[Attribute]
+          ret += y.getValue
+        } else {
+          log.warn("不支持文件上传")
+        }
+      }
+      if (ret.nonEmpty) {
+        Some(ret.toList)
+      } else None
+    } finally {
+      decoder.destroy()
+    }
+  }
 
   def raw: FullHttpRequest = httpRequest
 
