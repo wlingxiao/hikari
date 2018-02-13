@@ -80,5 +80,7 @@ object SimpleExample extends App {
     Binary(path.toFile, "image/jpeg")
   }
 
+  get("/unit") { (_, _) => }
+
   HikariServer.start()
 }

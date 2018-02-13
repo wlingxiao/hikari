@@ -106,6 +106,9 @@ class Response(ctx: ChannelHandlerContext, hp: FullHttpRequest) {
           // Close the connection when the whole content is written out.
           lastContentFuture.addListener(ChannelFutureListener.CLOSE)
         }
+      case _: Unit =>
+        val response = new DefaultFullHttpResponse(privateVersion, HttpResponseStatus.valueOf(status), Unpooled.wrappedBuffer(Array.emptyByteArray))
+        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE)
       case any: Any =>
         val ow = new ObjectMapper()
         ow.setSerializationInclusion(Include.NON_NULL)

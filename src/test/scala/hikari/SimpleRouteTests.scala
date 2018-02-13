@@ -186,6 +186,16 @@ class SimpleRouteTests extends FunSuite with Matchers with BeforeAndAfter {
     response.content().toString(UTF_8) should equal("image/jpeg")
   }
 
+  test("empty response") {
+    get("/unit") { (_, _) => }
+
+    val request = new DefaultFullHttpRequest(HTTP_1_1, GET, "/unit")
+    val channel = createChannel()
+    channel.writeInbound(request)
+    val response = channel.readOutbound[FullHttpResponse]()
+    response.content().toString(UTF_8) should equal("")
+  }
+
   private def createChannel(): EmbeddedChannel = {
     new EmbeddedChannel(new HttpRequestDecoder(), new HttpObjectAggregator(Short.MaxValue), new BasicHandler)
   }
