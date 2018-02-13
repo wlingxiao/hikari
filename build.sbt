@@ -30,6 +30,7 @@ libraryDependencies ++= Seq(
 
   // test
   "org.scalatest" %% "scalatest" % "3.0.4" % Test,
+  "org.mockito" % "mockito-core" % "2.15.0" % Test,
 
   // json support
   "com.fasterxml.jackson.core" % "jackson-core" % JacksonVersion,

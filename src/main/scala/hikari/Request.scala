@@ -2,6 +2,7 @@ package hikari
 
 import java.net.URI
 import java.nio.charset.Charset
+import java.util.Locale
 
 import io.netty.handler.codec.http.HttpHeaderNames.COOKIE
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder
@@ -84,7 +85,7 @@ class Request(httpRequest: FullHttpRequest) {
   }
 
   def headers: Map[String, String] = {
-    httpRequest.headers().asScala.map(x => x.getKey -> x.getValue).toMap
+    httpRequest.headers().asScala.map(x => x.getKey.toLowerCase(Locale.ENGLISH) -> x.getValue).toMap
   }
 
   def header(name: String): Option[String] = {
