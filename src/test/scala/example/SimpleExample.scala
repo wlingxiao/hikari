@@ -82,5 +82,10 @@ object SimpleExample extends App {
 
   get("/unit") { (_, _) => }
 
+  get("/query") { (req, _) =>
+    val a = req.query("age")
+    a.get.mkString("")
+  }
+
   HikariServer.start()
 }

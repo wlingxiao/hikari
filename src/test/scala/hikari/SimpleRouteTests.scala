@@ -196,6 +196,20 @@ class SimpleRouteTests extends FunSuite with Matchers with BeforeAndAfter {
     response.content().toString(UTF_8) should equal("")
   }
 
+  test("获取单个查询参数") {
+
+    get("/query") { (req, _) =>
+      req.query("name").get.mkString("")
+    }
+
+    val request = new DefaultFullHttpRequest(HTTP_1_1, GET, "/query?name=query")
+    val channel = createChannel()
+    channel.writeInbound(request)
+    val response = channel.readOutbound[FullHttpResponse]()
+    response.content().toString(UTF_8) should equal("query")
+
+  }
+
   private def createChannel(): EmbeddedChannel = {
     new EmbeddedChannel(new HttpRequestDecoder(), new HttpObjectAggregator(Short.MaxValue), new BasicHandler)
   }

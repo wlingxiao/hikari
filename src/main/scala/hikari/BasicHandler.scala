@@ -1,5 +1,7 @@
 package hikari
 
+import java.net.URI
+
 import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
 import io.netty.handler.codec.http._
 import io.netty.util.AsciiString
@@ -34,7 +36,9 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
     if (HttpUtil.isKeepAlive(httpRequest)) {
       resp.header(CONNECTION, KEEP_ALIVE)
     }
-    findAction(httpRequest.uri(), request, resp)
+    val uri = new URI(httpRequest.uri())
+
+    findAction(uri.getPath, request, resp)
   }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {

@@ -4,7 +4,7 @@ import java.nio.charset.Charset
 
 import io.netty.handler.codec.http.HttpHeaderNames.COOKIE
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder
-import io.netty.handler.codec.http.{FullHttpRequest, HttpMethod}
+import io.netty.handler.codec.http.{FullHttpRequest, HttpMethod, QueryStringDecoder}
 import org.json4s.jackson.JsonMethods
 import org.json4s.{DefaultFormats, Formats}
 import org.slf4j.LoggerFactory
@@ -45,6 +45,15 @@ class Request(httpRequest: FullHttpRequest) {
         }
     }
   }
+
+  def query(name: String): Option[List[String]] = {
+    val queryDecoder = new QueryStringDecoder(httpRequest.uri())
+    queryDecoder.parameters().asScala.get(name) match {
+      case Some(l) => Some(l.asScala.toList)
+      case None => None
+    }
+  }
+
 
   def raw: FullHttpRequest = httpRequest
 
