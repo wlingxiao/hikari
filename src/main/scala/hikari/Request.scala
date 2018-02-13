@@ -16,8 +16,6 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
-class ByteBody {}
-
 class Request(httpRequest: FullHttpRequest) {
 
   private val CONTENT_TYPE = "Content-Type"
