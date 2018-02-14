@@ -88,7 +88,7 @@ object SimpleExample extends App {
   }
 
   post("/form") { (req, _) =>
-    val ret = req.form("name")
+    val ret = req.forms("name")
     ret.get.mkString("")
   }
 

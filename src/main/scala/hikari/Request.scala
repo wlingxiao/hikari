@@ -7,8 +7,9 @@ import java.util.Locale
 import io.netty.handler.codec.http.HttpHeaderNames.COOKIE
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder
 import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType
-import io.netty.handler.codec.http.multipart.{Attribute, HttpPostRequestDecoder}
+import io.netty.handler.codec.http.multipart.{Attribute, HttpPostRequestDecoder, MixedFileUpload}
 import io.netty.handler.codec.http.{FullHttpRequest, HttpMethod, QueryStringDecoder}
+import io.netty.util.ReferenceCountUtil
 import org.json4s.jackson.JsonMethods
 import org.json4s.{DefaultFormats, Formats}
 import org.slf4j.LoggerFactory
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
+import scala.reflect.{ClassTag, classTag}
 
 class Request(httpRequest: FullHttpRequest) {
 
@@ -57,19 +59,72 @@ class Request(httpRequest: FullHttpRequest) {
     }
   }
 
-  def form(name: String): Option[List[String]] = {
+  def forms(name: String): Option[List[Any]] = {
     val decoder = new HttpPostRequestDecoder(httpRequest)
     try {
       val data = decoder.getBodyHttpDatas(name)
       if (data != null) {
-        val ret = ListBuffer[String]()
+        val ret = ListBuffer[Any]()
         for (x <- data.asScala) {
+          ReferenceCountUtil.retain(x)
           if (x.getHttpDataType == HttpDataType.Attribute) {
             val y = x.asInstanceOf[Attribute]
             ret += y.getValue
-          } else {
-            log.warn("不支持文件上传")
+          } else if (x.getHttpDataType == HttpDataType.FileUpload) {
+            val y = x.asInstanceOf[MixedFileUpload]
+            ret += y
           }
+        }
+        if (ret.nonEmpty) {
+          Some(ret.toList)
+        } else None
+      } else None
+    } finally {
+      decoder.destroy()
+    }
+  }
+
+  def form[T](name: String)(implicit ct: ClassTag[T]): Option[T] = {
+    val f = forms(name)
+    if (f.isDefined && f.get.nonEmpty) {
+      val e = f.get.head
+      e match {
+        case x: String =>
+          ct match {
+            case _ if ct == classTag[String] => Option(x).asInstanceOf[Option[T]]
+            case _ if ct == classTag[Int] => Option(Integer.parseInt(x)).asInstanceOf[Option[T]]
+            case _ if ct == classTag[Long] => Option(java.lang.Long.parseLong(x)).asInstanceOf[Option[T]]
+            case _ if ct == classTag[Double] => Option(java.lang.Double.parseDouble(x)).asInstanceOf[Option[T]]
+            case _ if ct == classTag[Byte] => Option(java.lang.Byte.parseByte(x)).asInstanceOf[Option[T]]
+            // case _ if ct == classTag[Float] => Option(java.lang.Float.parseFloat(x)).asInstanceOf[Option[T]]
+            case _ => throw new UnsupportedOperationException(s"不能将参数转换为指定类型：${ct.runtimeClass.getName}")
+          }
+        case m: MixedFileUpload if ct == classTag[MixedFileUpload] => Option(m).asInstanceOf[Option[T]]
+        case _ => Option(e).asInstanceOf[Option[T]]
+      }
+    } else None
+
+  }
+
+  def forms: Option[List[Map[String, Any]]] = {
+    val decoder = new HttpPostRequestDecoder(httpRequest)
+    try {
+      val data = decoder.getBodyHttpDatas()
+      if (data != null) {
+        val map = mutable.HashMap[String, Any]()
+        val ret = ListBuffer[Map[String, Any]]()
+        for (x <- data.asScala) {
+          ReferenceCountUtil.retain(x)
+          if (x.getHttpDataType == HttpDataType.Attribute) {
+            val y = x.asInstanceOf[Attribute]
+            map(y.getName) = y.getValue
+          } else if (x.getHttpDataType == HttpDataType.FileUpload) {
+            val y = x.asInstanceOf[MixedFileUpload]
+            map(y.getName) = y
+          } else {
+            log.warn(s"不明确的请求体参数类型: ${x.getName}")
+          }
+          ret += map.toMap
         }
         if (ret.nonEmpty) {
           Some(ret.toList)

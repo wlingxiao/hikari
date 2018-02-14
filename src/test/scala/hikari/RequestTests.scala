@@ -77,14 +77,23 @@ class RequestTests extends FunSuite with Matchers with BeforeAndAfter {
     val df = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/test", byteBuf)
     df.headers().set(CONTENT_TYPE, "application/x-www-form-urlencoded")
     val request = new Request(df)
-    request.form("name") should be(Some(List("test")))
+    request.forms("name") should be(Some(List("test")))
   }
 
   test("获取请求体参数，请求体中不包含任何参数") {
     val df = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/test")
     df.headers().set(CONTENT_TYPE, "application/x-www-form-urlencoded")
     val request = new Request(df)
-    request.form("name") should be(None)
+    request.forms("name") should be(None)
+  }
+
+  test("获取单个请求体参数，并将该参数转化为制定类型 Int") {
+    val byteBuf = Unpooled.wrappedBuffer("name=1123".getBytes)
+    val df = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/test", byteBuf)
+    df.headers().set(CONTENT_TYPE, "application/x-www-form-urlencoded")
+    val request = new Request(df)
+    request.form[Int]("name") should be(Some(1123))
+
   }
 
   test("获取请求体参数，content-type 为 application/form-data，不包含文件") {
@@ -92,7 +101,7 @@ class RequestTests extends FunSuite with Matchers with BeforeAndAfter {
     val df = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/test", byteBuf)
     df.headers().set(CONTENT_TYPE, "form-data")
     val request = new Request(df)
-    request.form("name") should be(Some(List("test")))
+    request.forms("name") should be(Some(List("test")))
   }
 
   test("获取所有 Cookie，请求中包含 Cookie header") {
