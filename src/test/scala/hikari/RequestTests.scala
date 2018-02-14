@@ -1,5 +1,7 @@
 package hikari
 
+import io.netty.buffer.Unpooled
+import io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE
 import io.netty.handler.codec.http._
 import org.mockito.BDDMockito._
 import org.mockito.Mockito._
@@ -54,5 +56,42 @@ class RequestTests extends FunSuite with Matchers with BeforeAndAfter {
     given(fullRequest.headers()).willReturn(headers)
     val request = new Request(fullRequest)
     request.contentType should be(Some("application/json"))
+  }
+
+  test("获取查询参数，链接中有查询参数") {
+    given(fullRequest.uri()).willReturn("/test?name=test")
+    val request = new Request(fullRequest)
+    request.query("name") should be(Some(List("test")))
+  }
+
+
+  test("获取查询参数，链接中没有查询参数") {
+    given(fullRequest.uri()).willReturn("/test")
+    val request = new Request(fullRequest)
+    request.query("name") should be(None)
+  }
+
+
+  test("获取请求体参数，content-type 为 application/x-www-form-urlencoded") {
+    val byteBuf = Unpooled.wrappedBuffer("name=test".getBytes)
+    val df = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/test", byteBuf)
+    df.headers().set(CONTENT_TYPE, "application/x-www-form-urlencoded")
+    val request = new Request(df)
+    request.form("name") should be(Some(List("test")))
+  }
+
+  test("获取请求体参数，请求体中不包含任何参数") {
+    val df = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/test")
+    df.headers().set(CONTENT_TYPE, "application/x-www-form-urlencoded")
+    val request = new Request(df)
+    request.form("name") should be(None)
+  }
+
+  test("获取请求体参数，content-type 为 application/form-data，不包含文件") {
+    val byteBuf = Unpooled.wrappedBuffer("name=test".getBytes)
+    val df = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/test", byteBuf)
+    df.headers().set(CONTENT_TYPE, "form-data")
+    val request = new Request(df)
+    request.form("name") should be(Some(List("test")))
   }
 }

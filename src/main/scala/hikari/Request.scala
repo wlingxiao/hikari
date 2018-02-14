@@ -59,19 +59,21 @@ class Request(httpRequest: FullHttpRequest) {
 
   def form(name: String): Option[List[String]] = {
     val decoder = new HttpPostRequestDecoder(httpRequest)
-    val data = decoder.getBodyHttpDatas(name)
     try {
-      val ret = ListBuffer[String]()
-      for (x <- data.asScala) {
-        if (x.getHttpDataType == HttpDataType.Attribute) {
-          val y = x.asInstanceOf[Attribute]
-          ret += y.getValue
-        } else {
-          log.warn("不支持文件上传")
+      val data = decoder.getBodyHttpDatas(name)
+      if (data != null) {
+        val ret = ListBuffer[String]()
+        for (x <- data.asScala) {
+          if (x.getHttpDataType == HttpDataType.Attribute) {
+            val y = x.asInstanceOf[Attribute]
+            ret += y.getValue
+          } else {
+            log.warn("不支持文件上传")
+          }
         }
-      }
-      if (ret.nonEmpty) {
-        Some(ret.toList)
+        if (ret.nonEmpty) {
+          Some(ret.toList)
+        } else None
       } else None
     } finally {
       decoder.destroy()
