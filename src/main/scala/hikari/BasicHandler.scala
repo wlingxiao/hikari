@@ -28,7 +28,7 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
     * https://stackoverflow.com/questions/41556208/io-netty-util-illegalreferencecountexception-refcnt-0-in-netty
     */
   override def channelRead0(ctx: ChannelHandlerContext, httpRequest: FullHttpRequest): Unit = {
-    val request = new Request(httpRequest)
+    val request = new Request(httpRequest, ctx)
     log.info(s"请求方法为：${request.method}，请求地址为：${request.path}")
     val resp = new Response(ctx, httpRequest)
     ctx.channel().attr(Constants.REQUEST_KEY).setIfAbsent(request)

@@ -6,12 +6,13 @@ import java.util.Locale
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
+import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.http.HttpHeaderNames.COOKIE
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder
 import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType
 import io.netty.handler.codec.http.multipart.{Attribute, HttpPostRequestDecoder, MixedFileUpload}
 import io.netty.handler.codec.http.{FullHttpRequest, HttpMethod, QueryStringDecoder}
-import io.netty.util.ReferenceCountUtil
+import io.netty.util.{AttributeKey, ReferenceCountUtil}
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
@@ -19,7 +20,7 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 import scala.reflect.{ClassTag, classTag}
 
-class Request(httpRequest: FullHttpRequest) {
+class Request(httpRequest: FullHttpRequest, ctx: ChannelHandlerContext) {
 
   private val CONTENT_TYPE = "Content-Type"
 
@@ -174,17 +175,14 @@ class Request(httpRequest: FullHttpRequest) {
     cookies.find(x => x.name == name)
   }
 
-  private val paramsMap = mutable.HashMap[Any, Any]()
-
-  def params(key: Any, value: Any): Unit = {
-    paramsMap(key) = value
+  def attr[T](key: String, value: T): T = {
+    val k = AttributeKey.valueOf[T](key)
+    ctx.channel().attr(k).getAndSet(value)
   }
 
-  def params[T](key: Any)(implicit mf: Manifest[T]): Option[T] = {
-    paramsMap.get(key) match {
-      case Some(x) if mf.runtimeClass.isInstance(x) => Some(x.asInstanceOf[T])
-      case _ => None
-    }
+  def attr[T](key: String): Option[T] = {
+    val k = AttributeKey.valueOf[T](key)
+    Option(ctx.channel().attr(k).get())
   }
 
 }

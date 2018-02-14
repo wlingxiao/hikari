@@ -67,11 +67,11 @@ class SimpleRouteTests extends FunSuite with Matchers with BeforeAndAfter {
   test("在 Request 中共享参数") {
 
     InternalRoute.before("/users/*") { (req, _) =>
-      req.params(626, "test")
+      req.attr[String]("626", "test")
     }
 
     get("/users/:id") { (req, _) =>
-      req.params[String](626).get
+      req.attr[String]("626").get
     }
 
     val request = new DefaultFullHttpRequest(HTTP_1_1, GET, "/users/123")
