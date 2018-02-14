@@ -103,7 +103,7 @@ class Request(httpRequest: FullHttpRequest) {
   var pathPattern: Option[MultiParams] = None
 
 
-  def cookies(): List[Cookie] = {
+  def cookies: List[Cookie] = {
     val cookieString = httpRequest.headers().get(COOKIE)
     if (cookieString != null) {
       val cookies = ServerCookieDecoder.STRICT.decode(cookieString)
@@ -112,7 +112,7 @@ class Request(httpRequest: FullHttpRequest) {
   }
 
   def cookie(name: String): Option[Cookie] = {
-    cookies().find(x => x.name == name)
+    cookies.find(x => x.name == name)
   }
 
   private val paramsMap = mutable.HashMap[Any, Any]()

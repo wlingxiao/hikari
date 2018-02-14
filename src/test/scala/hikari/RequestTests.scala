@@ -1,7 +1,7 @@
 package hikari
 
 import io.netty.buffer.Unpooled
-import io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE
+import io.netty.handler.codec.http.HttpHeaderNames.{CONTENT_TYPE, COOKIE}
 import io.netty.handler.codec.http._
 import org.mockito.BDDMockito._
 import org.mockito.Mockito._
@@ -94,4 +94,31 @@ class RequestTests extends FunSuite with Matchers with BeforeAndAfter {
     val request = new Request(df)
     request.form("name") should be(Some(List("test")))
   }
+
+  test("获取所有 Cookie，请求中包含 Cookie header") {
+    val df = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/test")
+    df.headers().set(COOKIE, "name=test;name1=test1")
+    val request = new Request(df)
+    request.cookies.length should be(2)
+  }
+
+  test("获取所有 Cookie，请求中没有 Cookie") {
+    val df = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/test")
+    val request = new Request(df)
+    request.cookies.length should be(0)
+  }
+
+  test("通过 Cookie 名称获取 Cookie, 请求中包含 Cookie header") {
+    val df = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/test")
+    df.headers().set(COOKIE, "name=test;name1=test1")
+    val request = new Request(df)
+    request.cookie("name").get.value should equal("test")
+  }
+
+  test("通过 Cookie 名称获取 Cookie, 请求中没有 Cookie") {
+    val df = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/test")
+    val request = new Request(df)
+    request.cookie("name") should be(None)
+  }
+
 }

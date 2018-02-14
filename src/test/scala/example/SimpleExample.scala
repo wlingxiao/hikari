@@ -18,7 +18,7 @@ object SimpleExample extends App {
 
   get("/users/:id") { (request, response) =>
 
-    println(request.cookies())
+    println(request.cookies)
 
     println(request.cookie("name"))
 
