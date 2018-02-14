@@ -5,7 +5,7 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.{ChannelInitializer, ChannelOption}
-import io.netty.handler.codec.http.{HttpObjectAggregator, HttpServerCodec, HttpServerExpectContinueHandler}
+import io.netty.handler.codec.http.HttpServerCodec
 import io.netty.handler.logging.{LogLevel, LoggingHandler}
 
 class HikariServer extends ServerConfig {
@@ -21,7 +21,7 @@ class HikariServer extends ServerConfig {
     bootstrap.group(bossGroup, workerGroup)
       .channel(classOf[NioServerSocketChannel])
       .handler(new LoggingHandler(LogLevel.INFO))
-      .childHandler(new HikariServerInitializer)
+      .childHandler(new HikariServerInitializer(this))
 
     val configPort = getPort.getOrElse(port)
 
@@ -49,20 +49,40 @@ object HikariServer {
   }
 }
 
-class ServerConfig extends Config {
+trait ServerConfig extends Config {
 
-  protected val PORT_KEY = "hikari.server.port"
+  protected val portKey = "hikari.server.port"
 
-  def getPort: Option[Int] = getInt(PORT_KEY)
+  protected val staticPath = "hikari.static.path"
 
+  protected val staticUrl = "hikari.static.url"
+
+  /**
+    * 端口号
+    *
+    * @return
+    */
+  def getPort: Option[Int] = getInt(portKey)
+
+  /**
+    * 静态文件存放目录
+    *
+    * @return
+    */
+  def getStaticPath: Option[String] = getStr(staticPath)
+
+  /**
+    * 匹配静态文件的请求链接
+    *
+    * @return
+    */
+  def getStaticUrl: Option[String] = getStr(staticUrl)
 }
 
-class HikariServerInitializer extends ChannelInitializer[SocketChannel] {
+class HikariServerInitializer(serverConfig: ServerConfig) extends ChannelInitializer[SocketChannel] {
   override def initChannel(ch: SocketChannel): Unit = {
     val p = ch.pipeline()
     p.addLast(new HttpServerCodec())
-    p.addLast(new HttpObjectAggregator(Short.MaxValue))
-    p.addLast(new HttpServerExpectContinueHandler())
-    p.addLast(new BasicHandler)
+    p.addLast("dispatcher", new DispatchHandler(serverConfig))
   }
 }
