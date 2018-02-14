@@ -20,8 +20,11 @@ val JacksonVersion = "2.9.4"
 
 val SwaggerVersion = "1.5.18"
 
+val NettyVersion = "4.1.21.Final"
+
 libraryDependencies ++= Seq(
-  "io.netty" % "netty-all" % "4.1.21.Final",
+  "io.netty" % "netty-codec-http" % NettyVersion,
+  "io.netty" % "netty-handler" % NettyVersion,
   "org.scala-lang.modules" %% "scala-parser-combinators" % "1.1.0",
 
   // log
