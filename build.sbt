@@ -38,7 +38,6 @@ libraryDependencies ++= Seq(
   // json support
   "com.fasterxml.jackson.core" % "jackson-core" % JacksonVersion,
   "com.fasterxml.jackson.module" %% "jackson-module-scala" % JacksonVersion,
-  "org.json4s" %% "json4s-jackson" % "3.5.3",
 
   // swagger
   "io.swagger" % "swagger-core" % SwaggerVersion,

@@ -1,7 +1,5 @@
 package example
 
-import org.json4s.{DefaultFormats, Formats}
-
 case class Person(name: String, age: Int)
 
 /**
@@ -9,8 +7,6 @@ case class Person(name: String, age: Int)
   *
   */
 object ManifestExample extends App {
-
-  private implicit val formats: Formats = DefaultFormats
 
   def parseStr[T](str: String)(implicit mf: Manifest[T]): Unit = {
     mf match {

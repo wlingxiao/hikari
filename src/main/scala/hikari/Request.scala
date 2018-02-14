@@ -4,14 +4,14 @@ import java.net.URI
 import java.nio.charset.Charset
 import java.util.Locale
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import io.netty.handler.codec.http.HttpHeaderNames.COOKIE
 import io.netty.handler.codec.http.cookie.ServerCookieDecoder
 import io.netty.handler.codec.http.multipart.InterfaceHttpData.HttpDataType
 import io.netty.handler.codec.http.multipart.{Attribute, HttpPostRequestDecoder, MixedFileUpload}
 import io.netty.handler.codec.http.{FullHttpRequest, HttpMethod, QueryStringDecoder}
 import io.netty.util.ReferenceCountUtil
-import org.json4s.jackson.JsonMethods
-import org.json4s.{DefaultFormats, Formats}
 import org.slf4j.LoggerFactory
 
 import scala.collection.JavaConverters._
@@ -25,23 +25,27 @@ class Request(httpRequest: FullHttpRequest) {
 
   private val log = LoggerFactory.getLogger(this.getClass)
 
-  private implicit val formats: Formats = DefaultFormats
+  private lazy val objectMapper = {
+    val mapper = new ObjectMapper()
+    mapper.registerModule(DefaultScalaModule)
+    mapper
+  }
 
   def method: String = {
     httpRequest.method().name()
   }
 
-  def body[T](implicit mf: Manifest[T]): Option[T] = {
+  def body[T](implicit mf: ClassTag[T]): Option[T] = {
 
     mf match {
-      case m if mf == manifest[ByteBuf] =>
+      case m if mf == classTag[ByteBuf] =>
         val content = httpRequest.content()
         Option(ByteBuf(content, contentType.getOrElse("text/plain"))).asInstanceOf[Option[T]]
       case _ =>
         if (httpRequest.method().equals(HttpMethod.POST) || httpRequest.method().equals(HttpMethod.PUT)) {
           if (header("Content-Type".toLowerCase()).isDefined && header("Content-Type".toLowerCase).get.contains("application/json")) {
             val b = httpRequest.content().toString(Charset.forName("UTF-8"))
-            JsonMethods.parse(b).extractOpt[T]
+            Option(objectMapper.readValue(b, mf.runtimeClass).asInstanceOf[T])
           } else {
             None
           }
