@@ -41,5 +41,8 @@ libraryDependencies ++= Seq(
   "io.swagger" % "swagger-core" % SwaggerVersion,
   "io.swagger" % "swagger-annotations" % SwaggerVersion,
   "io.swagger" % "swagger-models" % SwaggerVersion,
-  "org.webjars" % "swagger-ui" % "2.2.10-1"
+  "org.webjars" % "swagger-ui" % "2.2.10-1",
+
+  // config
+  "com.typesafe" % "config" % "1.3.1"
 )

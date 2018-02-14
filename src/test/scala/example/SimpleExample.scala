@@ -92,5 +92,9 @@ object SimpleExample extends App {
     ret.get.mkString("")
   }
 
-  HikariServer.start()
+  val server = new HikariServer {
+    override val configFile = "hikari-test"
+  }
+
+  server.start()
 }
