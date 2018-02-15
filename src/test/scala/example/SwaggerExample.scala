@@ -9,8 +9,8 @@ import hikari.{Binary, HikariServer}
 object SwaggerExample extends App {
 
 
-  get("/swagger/*") { (req, resp) =>
-    val path = req.pathPattern.get.get("splat").get.mkString("/")
+  get("/swagger/*") {
+    val path = request.pathPattern.get.get("splat").get.mkString("/")
     var in: InputStream = null
     val ret: Binary = try {
       val p = "/META-INF/resources/webjars/swagger-ui/2.2.10-1/" + path
@@ -24,7 +24,7 @@ object SwaggerExample extends App {
         in.close()
       }
     }
-    resp.header("Cache-Control", "max-age=360000")
+    response.header("Cache-Control", "max-age=360000")
     ret
   }
 

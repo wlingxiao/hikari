@@ -32,12 +32,14 @@ private[hikari] object InternalRoute {
 
   private[hikari] val afterMap = scala.collection.mutable.ListBuffer[FilterEntry]()
 
-  def get(path: String)(action: Action): Unit = {
+  def get(path: String)(any: => Any): Unit = {
+    val action = (request: Request, response: Response) => any
     val routeEntry = RouteEntry("GET", SinatraPathPatternParser(path), action, path)
     routeHolders += routeEntry
   }
 
-  def post(path: String)(action: Action): Unit = {
+  def post(path: String)(any: => Any): Unit = {
+    val action = (request: Request, response: Response) => any
     val routeEntry = RouteEntry("POST", SinatraPathPatternParser(path), action, path)
     routeHolders += routeEntry
   }

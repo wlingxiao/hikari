@@ -16,7 +16,7 @@ object SimpleExample extends App {
 
   }
 
-  get("/users/:id") { (request, response) =>
+  get("/users/:id") {
 
     println(request.cookies)
 
@@ -25,8 +25,8 @@ object SimpleExample extends App {
     request.pathParam("id")
   }
 
-  post("/users") { (req, _) =>
-    val a = req.body[Person]
+  post("/users") {
+    val a = request.body[Person]
     println(a)
     "created"
   }
@@ -35,23 +35,23 @@ object SimpleExample extends App {
     println("after users")
   }
 
-  get("/sessions") { (_, resp) =>
-    resp.cookie("token", "helloworld")
+  get("/sessions") {
+    response.cookie("token", "helloworld")
     "success"
   }
 
-  get("/jsons") { (_, resp) =>
+  get("/jsons") {
     Person("test", 100)
   }
 
-  get("/async") { (_, resp) =>
+  get("/async") {
     Future {
       "test"
     }
   }
 
-  post("/files") { (req, _) =>
-    val f = req.body[ByteBuf]
+  post("/files") {
+    val f = request.body[ByteBuf]
     if (f.isDefined) {
       val buffer = f.get.buffer
       val file = new File("Z:\\Work" + "\\test")
@@ -75,20 +75,20 @@ object SimpleExample extends App {
     "success"
   }
 
-  get("/files") { (_, _) =>
+  get("/files") {
     val path = Paths.get("z://work//test")
     Binary(path.toFile, "image/jpeg")
   }
 
-  get("/unit") { (_, _) => }
+  get("/unit") {}
 
-  get("/query") { (req, _) =>
-    val a = req.query("age")
+  get("/query") {
+    val a = request.query("age")
     a.get.mkString("")
   }
 
-  post("/form") { (req, _) =>
-    val ret = req.forms("name")
+  post("/form") {
+    val ret = request.forms("name")
     ret.get.mkString("")
   }
 
