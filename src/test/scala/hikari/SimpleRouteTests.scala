@@ -109,35 +109,6 @@ class SimpleRouteTests extends FunSuite with Matchers with BeforeAndAfter {
     response.content().toString(UTF_8) should equal("post")
   }
 
-  test("get with put") {
-    get("/users/:id") { (req, _) =>
-      "get"
-    }
-
-    put("/users/:id") { (req, _) =>
-      "put"
-    }
-
-    val request = new DefaultFullHttpRequest(HTTP_1_1, PUT, "/users/123")
-    val channel = createChannel()
-    channel.writeInbound(request)
-    val response = channel.readOutbound[FullHttpResponse]()
-    response.content().toString(UTF_8) should equal("put")
-  }
-
-  /*test("download file") {
-    get("/files") { (req, _) =>
-      val bytes = Array[Byte]('a', 'b', 'c')
-      ByteBuf(bytes, "text/plain")
-    }
-
-    val request = new DefaultFullHttpRequest(HTTP_1_1, GET, "/files")
-    val channel = createChannel()
-    channel.writeInbound(request)
-    val response = channel.readOutbound[FullHttpResponse]()
-    response.content().toString(UTF_8) should equal("abc")
-  }*/
-
   test("upload file") {
     post("/files") { (req, _) =>
       val buf = req.body[ByteBuf]

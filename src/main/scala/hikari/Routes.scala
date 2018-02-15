@@ -6,12 +6,6 @@ object Routes {
 
   def post = InternalRoute.post _
 
-  def put = InternalRoute.put _
-
-  def delete = InternalRoute.delete _
-
-  def options = InternalRoute.options _
-
 }
 
 object Filters {
