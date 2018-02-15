@@ -7,6 +7,8 @@ import org.mockito.BDDMockito._
 import org.mockito.Mockito._
 import org.scalatest.{BeforeAndAfter, FunSuite, Matchers}
 
+case class RequestTestUser(name: String, age: Int)
+
 class RequestTests extends FunSuite with Matchers with BeforeAndAfter {
 
   private var fullRequest: FullHttpRequest = _
@@ -64,13 +66,11 @@ class RequestTests extends FunSuite with Matchers with BeforeAndAfter {
     request.query("name") should be(Some(List("test")))
   }
 
-
   test("获取查询参数，链接中没有查询参数") {
     given(fullRequest.uri()).willReturn("/test")
     val request = new Request(fullRequest, null)
     request.query("name") should be(None)
   }
-
 
   test("获取请求体参数，content-type 为 application/x-www-form-urlencoded") {
     val byteBuf = Unpooled.wrappedBuffer("name=test".getBytes)
@@ -129,5 +129,42 @@ class RequestTests extends FunSuite with Matchers with BeforeAndAfter {
     val request = new Request(df, null)
     request.cookie("name") should be(None)
   }
+
+  test("反序列化 application/json 请求体，请求体中包含完整的实体信息") {
+    val content = Unpooled.wrappedBuffer("""{"name": "test", "age": 123}""".getBytes)
+    val req = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/test", content)
+    req.headers().add("Content-Type", "application/json:charset=utf-8")
+
+    val request = new Request(req, null)
+    request.body[RequestTestUser] should be(Some(RequestTestUser("test", 123)))
+  }
+
+  test("反序列化 application/json 请求体，请求体中缺少部分信息，不匹配的引用类型字段默认设置为 null") {
+    val content = Unpooled.wrappedBuffer("""{"age": 123}""".getBytes)
+    val req = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/test", content)
+    req.headers().add("Content-Type", "application/json:charset=utf-8")
+
+    val request = new Request(req, null)
+    request.body[RequestTestUser] should be(Some(RequestTestUser(null, 123)))
+  }
+
+  test("反序列化 application/json 请求体，实体中缺少部分信息") {
+    val content = Unpooled.wrappedBuffer("""{"name": "test", "age": 123, "sex": "female"}""".getBytes)
+    val req = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/test", content)
+    req.headers().add("Content-Type", "application/json:charset=utf-8")
+
+    val request = new Request(req, null)
+    request.body[RequestTestUser] should be(Some(RequestTestUser("test", 123)))
+  }
+
+  test("Content-Type 不为json时和参数类型不为 ByteBuf 时，返回None") {
+    val content = Unpooled.wrappedBuffer("""{"name": "test", "age": 123, "sex": "female"}""".getBytes)
+    val req = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/test", content)
+    req.headers().add("Content-Type", "application/javascript")
+
+    val request = new Request(req, null)
+    request.body[RequestTestUser] should be(None)
+  }
+
 
 }

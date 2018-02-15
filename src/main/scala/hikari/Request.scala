@@ -4,7 +4,7 @@ import java.net.URI
 import java.nio.charset.Charset
 import java.util.Locale
 
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.{DeserializationFeature, ObjectMapper}
 import com.fasterxml.jackson.module.scala.DefaultScalaModule
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.http.HttpHeaderNames.COOKIE
@@ -29,6 +29,7 @@ class Request(httpRequest: FullHttpRequest, ctx: ChannelHandlerContext) {
   private lazy val objectMapper = {
     val mapper = new ObjectMapper()
     mapper.registerModule(DefaultScalaModule)
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
     mapper
   }
 
@@ -39,7 +40,7 @@ class Request(httpRequest: FullHttpRequest, ctx: ChannelHandlerContext) {
   def body[T](implicit mf: ClassTag[T]): Option[T] = {
 
     mf match {
-      case m if mf == classTag[ByteBuf] =>
+      case _ if mf == classTag[ByteBuf] =>
         val content = httpRequest.content()
         Option(ByteBuf(content, contentType.getOrElse("text/plain"))).asInstanceOf[Option[T]]
       case _ =>
