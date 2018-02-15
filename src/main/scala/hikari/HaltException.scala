@@ -1,3 +1,5 @@
 package hikari
 
-class HaltException(val code: Int, val msg: String) extends RuntimeException
+import scala.util.control.NoStackTrace
+
+class HaltException(val code: Int, val msg: String) extends RuntimeException with NoStackTrace
