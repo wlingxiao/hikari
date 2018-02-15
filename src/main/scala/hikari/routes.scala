@@ -1,6 +1,6 @@
 package hikari
 
-object Routes {
+object routes {
 
   def get = InternalRoute.get _
 

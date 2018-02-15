@@ -3,7 +3,7 @@ package example
 import java.io.{File, InputStream}
 import java.nio.file.{Files, StandardCopyOption}
 
-import hikari.Routes._
+import hikari.routes._
 import hikari.{Binary, HikariServer}
 
 object SwaggerExample extends App {

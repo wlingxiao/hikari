@@ -5,7 +5,7 @@ import java.nio.file.Paths
 
 import hikari.Executors._
 import hikari.Filters._
-import hikari.Routes._
+import hikari.routes._
 import hikari.{Binary, ByteBuf, HikariServer}
 
 import scala.concurrent.Future
