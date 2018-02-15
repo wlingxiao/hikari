@@ -38,7 +38,6 @@ class Request(httpRequest: FullHttpRequest, ctx: ChannelHandlerContext) {
   }
 
   def body[T](implicit mf: ClassTag[T]): Option[T] = {
-
     mf match {
       case _ if mf == classTag[ByteBuf] =>
         val content = httpRequest.content()
@@ -148,11 +147,11 @@ class Request(httpRequest: FullHttpRequest, ctx: ChannelHandlerContext) {
   }
 
   def headers: Map[String, String] = {
-    httpRequest.headers().asScala.map(x => x.getKey.toLowerCase(Locale.ENGLISH) -> x.getValue).toMap
+    httpRequest.headers().iteratorAsString().asScala.map(x => x.getKey -> x.getValue).toMap
   }
 
   def header(name: String): Option[String] = {
-    headers.get(name)
+    Option(httpRequest.headers().get(name))
   }
 
   def pathParam(name: String): String = {

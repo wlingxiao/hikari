@@ -44,6 +44,30 @@ class RequestTests extends FunSuite with Matchers with BeforeAndAfter {
     request.headers.size should be(2)
   }
 
+  test("获取所有请求头，当没有请求头时") {
+    val req = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/test")
+
+    val request = new Request(req, null)
+    request.headers.size should be(0)
+  }
+
+  test("根据名称获取单个请求头，不区分大小写，参数为小写") {
+    val req = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/test")
+    req.headers().add("test-header", "test-header")
+
+    val request = new Request(req, null)
+    request.header("test-header") should be(Some("test-header"))
+
+  }
+
+  test("根据名称获取单个请求头，不区分大小写，参数为大写") {
+    val req = new DefaultFullHttpRequest(HttpVersion.HTTP_1_1, HttpMethod.POST, "/test")
+    req.headers().add("test-header", "test-header")
+
+    val request = new Request(req, null)
+    request.header("Test-Header") should be(Some("test-header"))
+  }
+
   test("获取 content-type，参数名称为 content-type") {
     val headers = new DefaultHttpHeaders()
     headers.set(HttpHeaderNames.CONTENT_TYPE, "application/json")
