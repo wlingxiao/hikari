@@ -41,11 +41,6 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
     findAction(uri.getPath, request, resp)
   }
 
-  override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable): Unit = {
-    val mapper = new ExceptionHandler
-    mapper.runAll(ctx, cause)
-  }
-
   private def findAction(url: String, request: Request, response: Response): Unit = {
     InternalRoute.beforeFilters.find(x => {
       request.pathPattern = x.pathPattern(url)

@@ -22,7 +22,7 @@ class HttpResponse(resp: FullHttpResponse) {
 
 }
 
-object requests {
+object requests extends ServerConfig {
 
   private val objectMapper = {
     val ow = new ObjectMapper()
@@ -69,7 +69,7 @@ object requests {
     new HttpResponse(channel.readOutbound[FullHttpResponse]())
   }
 
-  private def createBasicHandler = createChannel(new BasicHandler)
+  private def createBasicHandler = createChannel(new DispatchHandler(this))
 
   private def createChannel(handler: ChannelHandler): EmbeddedChannel = {
     new EmbeddedChannel(new HttpRequestDecoder(), new HttpObjectAggregator(Short.MaxValue), handler)

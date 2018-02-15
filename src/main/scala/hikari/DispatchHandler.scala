@@ -12,10 +12,12 @@ class DispatchHandler(serverConfig: ServerConfig) extends SimpleChannelInboundHa
           if (req.uri().startsWith(serverConfig.getStaticUrl.getOrElse("/static"))) {
             ctx.channel().pipeline().replace(this, "ObjectAggregator", new HttpObjectAggregator(Short.MaxValue))
             ctx.channel().pipeline().addLast(new StaticFileHandler)
+            ctx.channel().pipeline().addLast(new ExceptionHandler)
           }
         } else {
           ctx.channel().pipeline().replace(this, "ObjectAggregator", new HttpObjectAggregator(Short.MaxValue))
           ctx.channel().pipeline().addLast(new BasicHandler)
+          ctx.channel().pipeline().addLast(new ExceptionHandler)
         }
         ctx.fireChannelRead(ReferenceCountUtil.retain(msg))
       case _ =>
