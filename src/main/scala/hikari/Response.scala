@@ -7,7 +7,7 @@ import io.netty.channel._
 import io.netty.handler.codec.http.HttpHeaderNames._
 import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
 import io.netty.handler.codec.http.cookie.{ServerCookieEncoder, Cookie => NettyCookie}
-import io.netty.handler.codec.http.{DefaultFullHttpResponse, DefaultHttpResponse, FullHttpRequest, HttpHeaderNames, HttpHeaderValues, HttpResponse, HttpResponseStatus, HttpUtil, HttpVersion, LastHttpContent}
+import io.netty.handler.codec.http.{DefaultFullHttpResponse, DefaultHttpResponse, FullHttpRequest, FullHttpResponse, HttpHeaderNames, HttpHeaderValues, HttpResponse, HttpResponseStatus, HttpUtil, HttpVersion, LastHttpContent}
 import io.netty.util.AsciiString
 import org.slf4j.LoggerFactory
 
@@ -33,7 +33,7 @@ class Response(var ctx: ChannelHandlerContext, hp: FullHttpRequest) {
   }
 
   private def writeNormal(body: Any): Unit = {
-    val httpResponse: HttpResponse = body match {
+    val httpResponse = body match {
       case str: String => new StringTransformer(hp, 200, _contentType).transform(str)
       case dfhp: DefaultFullHttpResponse => dfhp
       case _: Unit => new DefaultFullHttpResponse(privateVersion, HttpResponseStatus.valueOf(status), Unpooled.wrappedBuffer(Array.emptyByteArray))
@@ -53,10 +53,11 @@ class Response(var ctx: ChannelHandlerContext, hp: FullHttpRequest) {
     httpResponse.headers().set(SET_COOKIE, ServerCookieEncoder.STRICT.encode(cookieHolder.asJava))
   }
 
-  private def writeResponse(httpResponse: HttpResponse): Unit = {
+  private def writeResponse(httpResponse: FullHttpResponse): Unit = {
     if (HttpUtil.isKeepAlive(hp)) {
       httpResponse.headers().set(CONNECTION, HttpHeaderValues.KEEP_ALIVE)
-      ctx.writeAndFlush(httpResponse)
+      httpResponse.headers().set(HttpHeaderNames.CONTENT_LENGTH, httpResponse.content().readableBytes())
+      ctx.write(httpResponse)
     } else {
       ctx.writeAndFlush(httpResponse).addListener(ChannelFutureListener.CLOSE)
     }
