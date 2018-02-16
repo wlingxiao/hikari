@@ -20,6 +20,8 @@ class Binary(val file: RandomAccessFile, val contentType: String) {
 
 }
 
+class Multipart(val file: File)
+
 object Binary {
 
   def apply(file: File, contentType: String) = new Binary(file, contentType)

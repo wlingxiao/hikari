@@ -1,23 +1,28 @@
 package hikari
 
-import io.netty.buffer.Unpooled
-import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext, SimpleChannelInboundHandler}
-import io.netty.handler.codec.http.{DefaultFullHttpResponse, FullHttpRequest, HttpResponseStatus}
-import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
+import hikari.Executors._
+import io.netty.channel.{ChannelHandlerContext, SimpleChannelInboundHandler}
+import io.netty.handler.codec.http.FullHttpRequest
+import org.slf4j.LoggerFactory
+
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-import Executors._
+class AsyncHandler(future: Future[_], response: Response) extends SimpleChannelInboundHandler[FullHttpRequest] {
 
-class AsyncHandler(future: Future[_]) extends SimpleChannelInboundHandler[FullHttpRequest] {
+  private val log = LoggerFactory.getLogger(this.getClass)
+
   override def channelRead0(ctx: ChannelHandlerContext, msg: FullHttpRequest): Unit = {
-
-    println("how are you")
     future.onComplete {
       case Success(s) =>
-        val response = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.valueOf(200), Unpooled.wrappedBuffer(s.toString.getBytes))
-        ctx.writeAndFlush(response).addListener(ChannelFutureListener.CLOSE)
-      case Failure(t) => t.printStackTrace()
+        s match {
+          case _: Future[_] => log.error("异步响应的实体不能为 Future[_]")
+          case _: Any =>
+            response.ctx = ctx
+            response.write(s)
+        }
+      case Failure(t) => log.error("内部错误", t)
+
     }
   }
 }
