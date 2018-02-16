@@ -5,8 +5,8 @@ import io.netty.handler.codec.http.HttpResponseStatus
 
 import scala.collection.mutable.ListBuffer
 
-case class RouteEntry(method: String, pathPattern: PathPattern, action: Action, pattern: String) extends Ordered[RouteEntry] {
-  override def compare(that: RouteEntry): Int = {
+case class RouteMeta(method: String, pathPattern: PathPattern, action: Action, pattern: String, consumes: List[String] = Nil) extends Ordered[RouteMeta] {
+  override def compare(that: RouteMeta): Int = {
     if (this.pattern == that.pattern) {
       0
     } else if (this.pattern.contains(":") && that.pattern.contains("*")) {
@@ -24,9 +24,9 @@ case class FilterEntry(pathPattern: PathPattern, action: FilterAction)
 
 private[hikari] object InternalRoute {
 
-  private val routeHolders = ListBuffer[RouteEntry]()
+  private val routeHolders = ListBuffer[RouteMeta]()
 
-  private[hikari] def routes: List[RouteEntry] = routeHolders.toList
+  private[hikari] def routes: List[RouteMeta] = routeHolders.toList
 
   private[hikari] val beforeFilters = scala.collection.mutable.ListBuffer[FilterEntry]()
 
@@ -34,13 +34,13 @@ private[hikari] object InternalRoute {
 
   def get(path: String)(any: => Any): Unit = {
     val action = (request: Request, response: Response) => any
-    val routeEntry = RouteEntry("GET", SinatraPathPatternParser(path), action, path)
+    val routeEntry = RouteMeta("GET", SinatraPathPatternParser(path), action, path)
     routeHolders += routeEntry
   }
 
-  def post(path: String)(any: => Any): Unit = {
+  def post(path: String, consumes: List[String] = Nil)(any: => Any): Unit = {
     val action = (request: Request, response: Response) => any
-    val routeEntry = RouteEntry("POST", SinatraPathPatternParser(path), action, path)
+    val routeEntry = RouteMeta("POST", SinatraPathPatternParser(path), action, path, consumes)
     routeHolders += routeEntry
   }
 
@@ -52,7 +52,7 @@ private[hikari] object InternalRoute {
     afterMap += FilterEntry(SinatraPathPatternParser(path), action)
   }
 
-  def halt(code: Int): Unit = {
+  def halt(code: Int): Nothing = {
     val status = HttpResponseStatus.valueOf(code)
     throw new HaltException(status.code(), status.reasonPhrase())
   }

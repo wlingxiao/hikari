@@ -24,7 +24,7 @@ class StringTransformer(fhp: FullHttpRequest, status: Int, contentType: String, 
   }
 }
 
-class JsonTransformer(status: Int, contentType: String = "application/json", charset: Charset = Charset.forName("UTF-8")) extends ContentTransformer[Any, HttpResponse] {
+class JsonTransformer(status: Int, contentType: String = "application/json", charset: Charset = Charset.forName("UTF-8")) extends ContentTransformer[Any, FullHttpResponse] {
 
   private var _mapper = {
     val ow = new ObjectMapper()
@@ -38,7 +38,7 @@ class JsonTransformer(status: Int, contentType: String = "application/json", cha
     this._mapper = mapper
   }
 
-  def transform(content: Any): HttpResponse = {
+  def transform(content: Any): FullHttpResponse = {
     val json = _mapper.writeValueAsBytes(content)
     val resp = new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.valueOf(status), Unpooled.wrappedBuffer(json))
     resp.headers().add(HttpHeaderNames.CONTENT_TYPE, contentType + ";" + charset.displayName())

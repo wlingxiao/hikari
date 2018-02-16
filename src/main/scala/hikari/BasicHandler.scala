@@ -61,6 +61,22 @@ class BasicHandler extends SimpleChannelInboundHandler[FullHttpRequest] {
       InternalRoute.halt(405)
     }
 
+    val contentTypedMatched = if (request.method == "POST" || request.method == "PUT") {
+      if (request.contentType.isEmpty) {
+        InternalRoute.halt(415)
+      } else {
+        methodMatched.filter(x => {
+          if (x.consumes.isEmpty) {
+            true
+          } else x.consumes.contains(request.contentType.get)
+        })
+      }
+    } else methodMatched
+
+    if (contentTypedMatched.isEmpty) {
+      InternalRoute.halt(415)
+    }
+
     val aba = methodMatched.sortWith((x, y) => x > y).headOption
     val a = aba.get
     request.pathPattern = a.pathPattern(url)

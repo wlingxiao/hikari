@@ -92,6 +92,10 @@ object SimpleExample extends App {
     ret.get.mkString("")
   }
 
+  post("/json", List("application/json")) {
+    "json"
+  }
+
   val server = new HikariServer {
     override val configFile = "hikari-test"
   }

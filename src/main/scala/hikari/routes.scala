@@ -4,9 +4,13 @@ import io.netty.util.concurrent.FastThreadLocal
 
 object routes {
 
-  def get = InternalRoute.get _
+  def get(path: String)(any: => Any): Unit = {
+    InternalRoute.get(path)(any)
+  }
 
-  def post = InternalRoute.post _
+  def post(path: String, consumes: List[String] = Nil)(any: => Any): Unit = {
+    InternalRoute.post(path, consumes)(any)
+  }
 
   private val requestHolder = new FastThreadLocal[Request]()
 
