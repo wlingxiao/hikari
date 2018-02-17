@@ -24,7 +24,7 @@ case class FilterEntry(pathPattern: PathPattern, action: FilterAction)
 
 private[hikari] object InternalRoute {
 
-  private val routeHolders = ListBuffer[RouteMeta]()
+  private[hikari] val routeHolders = ListBuffer[RouteMeta]()
 
   private[hikari] def routes: List[RouteMeta] = routeHolders.toList
 
