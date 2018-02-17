@@ -64,3 +64,29 @@ private[hikari] object InternalRoute {
   }
 
 }
+
+trait Router {
+
+  protected val consumes: List[String] = Nil
+
+  protected val prefix = ""
+
+  final def request: Request = routes.requestHolder.get()
+
+  final def response: Response = routes.responseHolder.get()
+
+  def get(pattern: String)(resp: => Any): Unit = {
+    InternalRoute.get(prefix + pattern)(resp)
+  }
+
+  def post(pattern: String)(resp: => Any): Unit = {
+    val consu = if (consumes.isEmpty) this.consumes else consumes
+    InternalRoute.post(prefix + pattern, consu)(resp)
+  }
+
+  def post(pattern: String, consumes: List[String])(resp: => Any): Unit = {
+    val consu = if (consumes.isEmpty) this.consumes else consumes
+    InternalRoute.post(prefix + pattern, consu)(resp)
+  }
+
+}

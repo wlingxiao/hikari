@@ -12,9 +12,9 @@ object routes {
     InternalRoute.post(path, consumes)(any)
   }
 
-  private val requestHolder = new FastThreadLocal[Request]()
+  private[hikari] val requestHolder = new FastThreadLocal[Request]()
 
-  private val responseHolder = new FastThreadLocal[Response]()
+  private[hikari] val responseHolder = new FastThreadLocal[Response]()
 
   private[hikari] def setRequest(request: Request): Unit = {
     requestHolder.set(request)
